@@ -1,5 +1,7 @@
-end-4 dots on fedora
-
+<div align="center">
+    <h1>【 end_4's Hyprland dotfiles for Fedora】</h1>
+    <h3></h3>
+</div>
 ```bash
 # clone the repo
 git clone https://github.com/EisregenHaha/fedora-hyprland
