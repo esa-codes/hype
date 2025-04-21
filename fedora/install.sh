@@ -7,6 +7,7 @@ cd $t
 
 sudo dnf4 group install "Development Tools" -y
 sudo dnf install cmake clang -y
+sudo dnf install python3.11
 sudo dnf install gtksourceviewmm3-devel -y
 sudo dnf copr enable atim/starship -y
 sudo dnf copr enable solopasha/hyprland -y
