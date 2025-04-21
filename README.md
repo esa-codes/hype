@@ -2,6 +2,9 @@
     <h1>【 end_4's Hyprland dotfiles for Fedora】</h1>
     <h3></h3>
 </div>
+
+These scripts will automatically install the dependencies and configuartions for the dotfiles.
+
 ```bash
 # clone the repo
 git clone https://github.com/EisregenHaha/fedora-hyprland
