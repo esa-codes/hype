@@ -25,8 +25,9 @@ bash fedora/fonts.sh
 bash manual-install-helper.sh
 
 # copy the configs
-cp -R .config ~/.config
-cp -R .local ~/.local
+cp -Rf .config/* ~/.config/
+cp -Rf .local/* ~/.local/
+
  ```
 
 some fixes for polkit and gammastep/nightlight are noted in this discussion https://github.com/end-4/dots-hyprland/discussions/840
