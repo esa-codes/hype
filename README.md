@@ -3,7 +3,7 @@
     <h3></h3>
 </div>
 
-These scripts will automatically install the dependencies and configuartions for the dotfiles for Fedora.
+These scripts will automatically install the dependencies and configs for the setup on Fedora.
 Currently Tested on Fedora 42
 
 ![image](https://github.com/user-attachments/assets/c824d283-de7a-4730-a310-d6b468a71689)
