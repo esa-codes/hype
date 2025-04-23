@@ -32,10 +32,6 @@ sudo dnf install yad -y
 sudo dnf install scdoc -y
 
 sudo dnf install ydotool -y
-sudo systemctl daemon-reload 
-sudo systemctl enable ydotool 
-sudo systemctl start ydotool 
-ln -sf /tmp/.ydotool_socket /run/user/$(id -u $(whoami))/.ydotool_socket
 
 sudo dnf install webp-pixbuf-loader gtk-layer-shell-devel gtk3 gtksourceview3 gtksourceview3-devel gobject-introspection upower -y
 sudo dnf install brightnessctl ddcutil gammastep -y
