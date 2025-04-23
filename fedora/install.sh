@@ -52,7 +52,7 @@ sudo dnf install python3-pywayland python3-psutil hypridle wl-clipboard hyprlang
 
 sudo dnf install cargo -y
 cd $t
-git clone https://github.com/Kirottu/anyrun.git # Clone the repository
+git clone https://github.com/anyrun-org/anyrun.git # Clone the repository
 cd anyrun # Change the active directory to it
 cargo build --release # Build all the packages
 cargo install --path anyrun/ # Install the anyrun binary
