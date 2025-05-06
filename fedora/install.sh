@@ -6,6 +6,7 @@ mkdir -p $t
 cd $t
 
 sudo dnf4 group install "Development Tools" -y
+sudo dnf install gobject-introspection-devel -y 
 sudo dnf install cmake clang -y
 sudo dnf install gammastep mate-polkit -y
 sudo dnf install gtksourceviewmm3-devel -y
