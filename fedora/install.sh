@@ -13,7 +13,7 @@ sudo dnf install gtksourceviewmm3-devel -y
 sudo dnf copr enable atim/starship -y
 sudo dnf copr enable solopasha/hyprland -y
 sudo dnf install python3-pip python3-devel -y
-sudo dnf install gnome-bluetooth bluez-cups bluez -y
+sudo dnf install gnome-bluetooth bluez-cups bluez blueman -y
 sudo dnf install gtk4-devel libadwaita-devel -y
 sudo dnf install coreutils wl-clipboard xdg-utils cmake curl fuzzel rsync wget ripgrep gojq npm meson typescript gjs axel -y
 wget https://github.com/sentriz/cliphist/releases/download/v0.5.0/v0.5.0-linux-amd64 -O cliphist
