@@ -70,9 +70,7 @@ sudo dnf install gobject-introspection-devel gjs-devel pulseaudio-libs-devel -y
 
 # color-generation
 sudo dnf install python3 python3-regex unzip -y
-sudo dnf install python3-gobject-devel libsoup-devel blueprint-compiler -y
+sudo dnf install python3-gobject-devel libsoup-devel -y
 sudo dnf install python3-libsass libxdp-devel libxdp libportal -y
-sudo dnf4 config-manager --add-repo https://download.opensuse.org/repositories/home:sp1rit:notekit/Fedora_Rawhide/home:sp1rit:notekit.repo -y
-sudo dnf install clatexmath-devel -y
 sudo dnf install aylurs-gtk-shell  -y
 sudo dnf install kvantum kvantum-qt5 -y
