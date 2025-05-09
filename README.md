@@ -33,6 +33,8 @@ bash manual-install-helper.sh
 cp -Rf .config/* ~/.config/
 cp -Rf .local/* ~/.local/
 
+then just logout and select hyprland uwsm session to login
+
  ```
 
 original (outdated) discussion: https://github.com/end-4/dots-hyprland/discussions/840
