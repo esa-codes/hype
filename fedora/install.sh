@@ -6,8 +6,11 @@ rm -rf "$t"
 mkdir -p "$t"
 cd "$t"
 
+# Update System
+sudo dnf update --refresh
+
 # Group installation
-sudo dnf4 group install "Development Tools" -y
+sudo dnf install @development-tools -y
 
 # COPR repositories
 sudo dnf copr enable atim/starship -y
