@@ -21,3 +21,6 @@ fc-cache -f
 
 # Cleanup
 rm -rf "$t"
+
+# Success
+echo -e "\e[1m✅ Installation complete. Proceed with the manual-install-helper script.\e[0m"
