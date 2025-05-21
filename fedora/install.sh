@@ -20,7 +20,6 @@ sudo dnf install cargo -y
 # Python packages
 sudo dnf install python3 python3-pip python3-devel -y
 sudo dnf install python3-build python3-pillow python3-setuptools_scm python3-wheel -y
-sudo dnf install python3.12 python3.12-devel -y
 sudo dnf install python3-regex unzip -y
 sudo dnf install python3-pywayland python3-psutil hypridle -y
 sudo dnf install python3-gobject python3-dbus python3-requests python3-qrcode python3-setproctitle -y
