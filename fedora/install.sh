@@ -75,3 +75,15 @@ sudo dnf install python3-gobject-devel libsoup-devel -y
 sudo dnf install python3-libsass libxdp-devel libxdp libportal -y
 sudo dnf install aylurs-gtk-shell  -y
 sudo dnf install kvantum kvantum-qt5 -y
+
+sudo dnf install -y NetworkManager \
+        python3-gobject python3-dbus python3 power-profiles-daemon \
+        gammastep python3-requests python3-qrcode python3-setproctitle \
+        python3-pillow usbguard brightnessctl make --allowerasing
+
+git clone https://github.com/quantumvoid0/better-control.git
+    cd better-control
+    sudo make install
+    rm -rf ~/better-control
+
+echo -e "\e[1m4m✅ Installation complete. Proceed with the fonts script.\e[0m"
