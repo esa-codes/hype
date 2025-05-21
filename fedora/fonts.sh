@@ -1,16 +1,23 @@
 #!/bin/bash
 set -e
-t="$HOME/.cache/depends/"
-rm -rf $t
-mkdir -p $t
-cd $t
 
+t="$HOME/.cache/depends/"
+rm -rf "$t"
+mkdir -p "$t"
+cd "$t"
+
+# Clone the fonts repository
 git clone https://github.com/EisregenHaha/end4fonts
 cd end4fonts/fonts
-if [[ -d ~/.local/share/fonts/ ]]; then
-  echo "The fonts directory already exists"
-  cp -R * ~/.local/share/fonts
-else
-mkdir ~/.local/share/fonts
-fi
- cp -R * ~/.local/share/fonts
+
+# Ensure the fonts directory exists
+mkdir -p ~/.local/share/fonts
+
+# Copy fonts
+cp -R * ~/.local/share/fonts
+
+# Optional: refresh font cache
+fc-cache -f
+
+# Cleanup
+rm -rf "$t"
