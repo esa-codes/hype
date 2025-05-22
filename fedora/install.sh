@@ -104,7 +104,8 @@ cd "$t"
 git clone https://github.com/quantumvoid0/better-control.git
 cd better-control
 sudo make install
-rm -rf ~/better-control
+
+rm -rf "$t"
 
 # Final message
 echo -e "\e[1m✅ Installation complete. Proceed with the fonts script.\e[0m"
