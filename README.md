@@ -13,16 +13,19 @@ Preview:
 
 Instructions:
 
+WILL ONLY WORK ON FEDORA
+
+Automatic installer (select Full install, other options are for partial selections)
+
 ```bash
-# Automatic installer (select Full install, other options are for partial selections)
 bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/bootstrap.sh)
-
-then just logout and select hyprland uwsm session to login
-
  ```
+Then just logout and select hyprland uwsm session to login
 
+
+
+other stuff:
 original (outdated) discussion: https://github.com/end-4/dots-hyprland/discussions/840
-
 
 thanks:
 [@Kamion008](https://github.com/Kamion008) (fedora version)
