@@ -42,8 +42,8 @@ run_script() {
 # Copy dotfiles into ~/.config and ~/.local
 copy_dotfiles() {
     echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local...${NC}"
-    cp -Rf .config/* ~/.config/ || { echo -e "${RED}❌ Failed copying .config${NC}"; exit 1; }
-    cp -Rf .local/* ~/.local/   || { echo -e "${RED}❌ Failed copying .local${NC}"; exit 1; }
+    rsync -a --exclude 'hypr/custom/**' .config/ ~/.config/ || { echo -e "${RED}❌ Failed copying .config${NC}"; exit 1; }
+    rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed copying .local${NC}"; exit 1; }
     echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
 }
 
