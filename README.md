@@ -18,7 +18,7 @@ WILL ONLY WORK ON FEDORA
 Automatic installer (select Full install, other options are for partial selections)
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/bootstrap.sh)
+bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
  ```
 Then just logout and select hyprland uwsm session to login
 
