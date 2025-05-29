@@ -1,37 +1,61 @@
 <div align="center">
-    <h1>【 end_4's Hyprland dotfiles for Fedora】</h1>
-    <h3></h3>
+
+# 【 end_4's Hyprland Dotfiles for Fedora 】
+
+ Automated setup for a Hyprland desktop environment on **Fedora Linux**  
+
+
 </div>
 
-## Will only work for fedora, find the arch version [here](https://github.com/end-4/dots-hyprland)
+---
 
-These scripts will automatically install the dependencies and configs for the setup on Fedora.
+## ⚠️ Fedora Only
 
-Currently Tested on Fedora 42
+This script is intended for **Fedora**.  
+For the Arch version, visit: [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)
 
-Preview:
+> ✅ **Tested on Fedora 42**
 
-![image](https://github.com/user-attachments/assets/c824d283-de7a-4730-a310-d6b468a71689)
+---
 
-## Instructions:
+##  Preview
 
-Automatic installer (select Full install, other options are for partial selections)
+![Screenshot](https://github.com/user-attachments/assets/c824d283-de7a-4730-a310-d6b468a71689)
+
+---
+
+## Installation
+
+Run the automatic installer (recommended):
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
- ```
-Then just logout and select hyprland uwsm session to login
+```
+
+Then **reboot** and select the **Hyprland (uwsm)** session to log in.
+
+---
 
 ## Updating
 
-To update the script select the second option
+To update the configs:
 
-Put your custom Hyprland config changes into the .config/hypr/custom directory, these will NOT be overwritten by the Update script. **This is also where i moved the resolution, keyboard, cursor and input options**
+1. Run the script again.
+2. Select **option 2 (Update dotfiles)** in the menu.
 
+> Place any custom Hyprland config changes in `.config/hypr/custom`.  
+> These files are **not overwritten** by the update process.  
+> This is also where resolution, keyboard, cursor, and input settings now live.
 
-other stuff:
-original (outdated) discussion: https://github.com/end-4/dots-hyprland/discussions/840
+---
 
-thanks:
-[@Kamion008](https://github.com/Kamion008) (fedora version)
-[@nullptroma](https://github.com/nullptroma) (original opensuse script)
+## Notes
+
+- Original (outdated) discussion: [#840](https://github.com/end-4/dots-hyprland/discussions/840)
+
+---
+
+## Thanks
+
+- [@Kamion008](https://github.com/Kamion008) – Fedora version  
+- [@nullptroma](https://github.com/nullptroma) – Original OpenSUSE script
