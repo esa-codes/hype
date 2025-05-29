@@ -100,10 +100,10 @@ cp target/release/*.so ~/.config/anyrun/plugins
 cp examples/config.ron ~/.config/anyrun/config.ron
 
 # Build & install better-control
-cd "$t"
-git clone https://github.com/quantumvoid0/better-control.git
-cd better-control
-sudo make install
+# cd "$t"
+# git clone https://github.com/quantumvoid0/better-control.git
+# cd better-control
+# sudo make install
 
 rm -rf "$t"
 
