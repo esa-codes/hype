@@ -21,13 +21,8 @@ sudo dnf install cmake clang -y
 sudo dnf install cargo -y
 
 # Python packages
-sudo dnf install python3 python3-pip python3-devel -y
-sudo dnf install python3-build python3-pillow python3-setuptools_scm python3-wheel -y
-sudo dnf install python3-regex unzip -y
-sudo dnf install python3-pywayland python3-psutil hypridle -y
-sudo dnf install python3-gobject python3-dbus python3-requests python3-qrcode python3-setproctitle -y
-sudo dnf install python3-gobject-devel libsoup-devel -y
-sudo dnf install python3-libsass -y
+sudo dnf install python3 python3-devel -y
+sudo dnf install python3-regex unzip hypridle libsoup-devel -y
 
 # Hyprland and related packages
 sudo dnf install hyprland hyprland-qtutils -y
@@ -73,8 +68,8 @@ sudo dnf install swappy wf-recorder grim tesseract slurp -y
 # AppStream and web libs
 sudo dnf install appstream-util libsoup3-devel uv -y
 
-# Networking and power tools
-sudo dnf install -y NetworkManager power-profiles-daemon usbguard make --allowerasing
+# Power tools
+sudo dnf install -y make --allowerasing
 
 # Custom tool: cliphist
 wget https://github.com/sentriz/cliphist/releases/download/v0.5.0/v0.5.0-linux-amd64 -O cliphist
@@ -98,12 +93,6 @@ sudo cp "$HOME/.cargo/bin/anyrun" /usr/local/bin/
 mkdir -p ~/.config/anyrun/plugins
 cp target/release/*.so ~/.config/anyrun/plugins
 cp examples/config.ron ~/.config/anyrun/config.ron
-
-# Build & install better-control
-# cd "$t"
-# git clone https://github.com/quantumvoid0/better-control.git
-# cd better-control
-# sudo make install
 
 rm -rf "$t"
 
