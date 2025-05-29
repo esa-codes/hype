@@ -26,7 +26,9 @@ For the Arch version, visit: [end-4/dots-hyprland](https://github.com/end-4/dots
 
 ## Installation
 
-Run the automatic installer (recommended):
+### First read the notes section, this is not optional.
+
+Run the automatic installer:
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
@@ -40,21 +42,24 @@ Then **reboot** and select the **Hyprland (uwsm)** session to log in.
 
 To update the configs:
 
-1. Run the script again.
-2. Select **option 2 (Update dotfiles)** in the menu.
-
-> Place any custom Hyprland config changes in `.config/hypr/custom`.  
-> These files are **not overwritten** by the update process.  
-> This is also where resolution, keyboard, cursor, and input settings now live.
+1. Make sure you have read the Notes
+2. Run the script again.
+3. Select **option 2 (Update dotfiles)** in the menu.
 
 ---
 
 ## Notes
-  
-- Original (outdated) discussion: [#840](https://github.com/end-4/dots-hyprland/discussions/840)
 
+### Regarding Updates
+> Place any custom Hyprland config changes in `.config/hypr/custom`.  
+> These files are **not overwritten** by the update process. Otherwise you **will** lose your configuration changes after updating.  
+> This is also where resolution, keyboard, cursor, and input settings now live.
+  
 ### For Nvidia users:
 - Uncomment the lines found in ~/.config/hypr/custom/env.conf
+
+### Archive (not needed)
+- Original (outdated) discussion: [#840](https://github.com/end-4/dots-hyprland/discussions/840)
 ---
 
 ## Thanks
