@@ -73,7 +73,6 @@ while true; do
     case "$choice" in
         1)
             run_full_install
-            ask_exit
             ;;
         2)
             run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; }
