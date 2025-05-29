@@ -14,14 +14,8 @@ Preview:
 Instructions:
 
 ```bash
-# clone the repo
-git clone https://github.com/EisregenHaha/fedora-hyprland
-
-# change directories 
-cd fedora-hyprland
-
-# run the installer and select the Full install (selects every option)
-bash fedora.sh
+# Automatic installer (select Full install, other options are for partial selections)
+bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/bootstrap.sh)
 
 then just logout and select hyprland uwsm session to login
 
