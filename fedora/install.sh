@@ -7,7 +7,7 @@ mkdir -p "$t"
 cd "$t"
 
 # Update System
-sudo dnf update --refresh
+sudo dnf update --refresh -y
 
 # Group installation
 sudo dnf install @development-tools -y
