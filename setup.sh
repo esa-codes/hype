@@ -1,11 +1,31 @@
 #!/bin/bash
+
 set -e
 
-echo "Cloning Fedora dotfiles..."
-git clone https://github.com/EisregenHaha/fedora-hyprland ~/fedora-dotfiles
+REPO_URL="https://github.com/EisregenHaha/fedora-hyprland"
+CLONE_DIR="$HOME/.cache/fedora-hyprland"
 
-cd ~/fedora-dotfiles
+echo "Cloning Fedora Hyprland dotfiles..."
 
-echo "Running installer..."
+# If the directory exists, prompt reuse or delete
+if [[ -d "$CLONE_DIR" ]]; then
+    echo "Directory $CLONE_DIR already exists."
+    read -rp "Do you want to delete and re-clone it? (y/N): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        rm -rf "$CLONE_DIR"
+        echo "Removed old directory."
+    else
+        echo "Reusing existing directory."
+    fi
+fi
+
+# Clone if directory is missing
+if [[ ! -d "$CLONE_DIR" ]]; then
+    git clone --depth=1 "$REPO_URL" "$CLONE_DIR"
+    echo "Clone complete."
+fi
+
+cd "$CLONE_DIR" || { echo "Failed to enter $CLONE_DIR"; exit 1; }
+
 chmod +x fedora.sh
 ./fedora.sh
