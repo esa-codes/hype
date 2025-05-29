@@ -20,18 +20,8 @@ git clone https://github.com/EisregenHaha/fedora-hyprland
 # change directories 
 cd fedora-hyprland
 
-# install dependencies
-sudo bash fedora/install.sh
-
-# install fonts
-bash fedora/fonts.sh
-
-# install other dependencies and setup virtual python environment
-bash manual-install-helper.sh
-
-# copy the configs
-cp -Rf .config/* ~/.config/
-cp -Rf .local/* ~/.local/
+# run the installer and select the Full install (selects every option)
+bash fedora.sh
 
 then just logout and select hyprland uwsm session to login
 
