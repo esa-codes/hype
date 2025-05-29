@@ -50,9 +50,11 @@ To update the configs:
 ---
 
 ## Notes
-
+  
 - Original (outdated) discussion: [#840](https://github.com/end-4/dots-hyprland/discussions/840)
 
+### For Nvidia users:
+- Uncomment the lines found in ~/.config/hypr/custom/env.conf
 ---
 
 ## Thanks
