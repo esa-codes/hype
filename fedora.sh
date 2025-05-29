@@ -54,7 +54,7 @@ run_full_install() {
     run_script "$FONTS_SCRIPT" ""     || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; exit 1; }
     run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; exit 1; }
     copy_dotfiles
-    echo -e "${GREEN}🎉 Full installation completed successfully!${NC}"
+    echo -e "${GREEN}🎉 Full installation completed successfully! You can now reboot and select Hyprland at login.${NC}"
 }
 
 # Menu loop
