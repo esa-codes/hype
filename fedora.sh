@@ -39,12 +39,20 @@ run_script() {
     echo -e "${GREEN}✅ $script completed successfully.${NC}"
 }
 
-# Copy dotfiles into ~/.config and ~/.local
+# Copy dotfiles into ~/.config and ~/.local (initial copy — no exclusions)
 copy_dotfiles() {
     echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local...${NC}"
-    rsync -a --exclude 'hypr/custom/**' .config/ ~/.config/ || { echo -e "${RED}❌ Failed copying .config${NC}"; exit 1; }
-    rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed copying .local${NC}"; exit 1; }
+    cp -Rf .config/* ~/.config/ || { echo -e "${RED}❌ Failed copying .config${NC}"; exit 1; }
+    cp -Rf .local/* ~/.local/   || { echo -e "${RED}❌ Failed copying .local${NC}"; exit 1; }
     echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
+}
+
+# Copy dotfiles for update (exclude hypr/custom)
+copy_dotfiles_update() {
+    echo -e "${YELLOW}Updating dotfiles in ~/.config and ~/.local (preserving hypr/custom)...${NC}"
+    rsync -a --exclude 'hypr/custom/**' .config/ ~/.config/ || { echo -e "${RED}❌ Failed updating .config${NC}"; exit 1; }
+    rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed updating .local${NC}"; exit 1; }
+    echo -e "${GREEN}✅ Dotfiles updated successfully.${NC}"
 }
 
 # Full install: all scripts + dotfiles
@@ -57,25 +65,36 @@ run_full_install() {
     echo -e "${GREEN}🎉 Full installation completed successfully! You can now reboot and select Hyprland at login.${NC}"
 }
 
+# Update: install deps + update dotfiles
+run_update() {
+    echo -e "${YELLOW}Running update (dependencies + configs)...${NC}"
+    run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; exit 1; }
+    copy_dotfiles_update
+    echo -e "${GREEN}🎉 Update completed successfully!${NC}"
+}
+
 # Menu loop
 while true; do
     echo -e "\n${YELLOW}Select an option:${NC}"
     echo "1) Full install"
-    echo "2) Install Dependencies"
+    echo "2) Update dotfiles (preserves hypr/custom)"
+    echo ""
+    echo -e "\n${YELLOW}Partial Installations (be sure of what you are doing):${NC}"
     echo "3) Install Fonts"
     echo "4) Run manual-install-helper.sh"
     echo "5) Copy dotfiles to ~/.config and ~/.local"
-    echo "6) Exit"
+    echo "6) Install Dependencies"
+    echo "7) Exit"
     echo ""
 
-    read -rp "Enter your choice [1-6]: " choice
+    read -rp "Enter your choice [1-7]: " choice
 
     case "$choice" in
         1)
             run_full_install
             ;;
         2)
-            run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; }
+            run_update
             ask_exit
             ;;
         3)
@@ -91,11 +110,15 @@ while true; do
             ask_exit
             ;;
         6)
+            run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; }
+            ask_exit
+            ;;
+        7)
             echo -e "${GREEN}Goodbye!${NC}"
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please enter a number from 1 to 6.${NC}"
+            echo -e "${RED}Invalid option. Please enter a number from 1 to 7.${NC}"
             ;;
     esac
 done
