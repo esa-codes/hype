@@ -78,8 +78,8 @@ sudo cp cliphist /usr/local/bin/cliphist
 
 # Custom tool: dart-sass
 cd "$t"
-wget https://github.com/sass/dart-sass/releases/download/1.77.0/dart-sass-1.77.0-linux-x64.tar.gz
-tar -xzf dart-sass-1.77.0-linux-x64.tar.gz
+wget "$(curl -s https://api.github.com/repos/sass/dart-sass/releases/latest | grep browser_download_url | grep linux-x64.tar.gz | cut -d '"' -f 4)"
+tar -xzf dart-sass-*-linux-x64.tar.gz
 cd dart-sass
 sudo cp -rf * /usr/local/bin/
 
