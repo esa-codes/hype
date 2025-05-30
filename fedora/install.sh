@@ -72,7 +72,7 @@ sudo dnf install appstream-util libsoup3-devel uv -y
 sudo dnf install -y make --allowerasing
 
 # Custom tool: cliphist
-wget https://github.com/sentriz/cliphist/releases/download/v0.5.0/v0.5.0-linux-amd64 -O cliphist
+wget -O cliphist "$(curl -s https://api.github.com/repos/sentriz/cliphist/releases/latest | grep browser_download_url | grep -v '\.tar\.gz' | grep linux-amd64 | cut -d '"' -f 4)"
 chmod +x cliphist
 sudo cp cliphist /usr/local/bin/cliphist
 
