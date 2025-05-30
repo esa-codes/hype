@@ -97,6 +97,7 @@ while true; do
     case "$choice" in
         1)
             run_full_install
+            exit 0
             ;;
         2)
             run_update
