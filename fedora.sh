@@ -49,8 +49,11 @@ copy_dotfiles() {
 
 # Copy dotfiles for update (exclude hypr/custom)
 copy_dotfiles_update() {
-    echo -e "${YELLOW}Updating dotfiles in ~/.config and ~/.local (preserving hypr/custom)...${NC}"
-    rsync -a --exclude 'hypr/custom/**' .config/ ~/.config/ || { echo -e "${RED}❌ Failed updating .config${NC}"; exit 1; }
+    echo -e "${YELLOW}Updating dotfiles in ~/.config and ~/.local (preserving hypr/custom and ags/user_options.jsonc)...${NC}"
+    rsync -a \
+      --exclude 'hypr/custom/**' \
+      --exclude 'ags/user_options.jsonc' \
+      .config/ ~/.config/ || { echo -e "${RED}❌ Failed updating .config${NC}"; exit 1; }
     rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed updating .local${NC}"; exit 1; }
     echo -e "${GREEN}✅ Dotfiles updated successfully.${NC}"
 }
