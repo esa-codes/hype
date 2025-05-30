@@ -53,6 +53,7 @@ copy_dotfiles_update() {
     rsync -a \
       --exclude 'hypr/custom/**' \
       --exclude 'ags/user_options.jsonc' \
+      --exclude 'hypr/hyprland.conf' \
       .config/ ~/.config/ || { echo -e "${RED}❌ Failed updating .config${NC}"; exit 1; }
     rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed updating .local${NC}"; exit 1; }
     echo -e "${GREEN}✅ Dotfiles updated successfully.${NC}"
