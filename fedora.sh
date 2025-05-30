@@ -70,6 +70,7 @@ run_update() {
     echo -e "${YELLOW}Running update (dependencies + configs)...${NC}"
     run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; exit 1; }
     copy_dotfiles_update
+    run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; exit 1; }
     echo -e "${GREEN}🎉 Update completed successfully!${NC}"
 }
 
