@@ -66,3 +66,9 @@ To update the configs:
 
 - [@Kamion008](https://github.com/Kamion008) – Fedora version  
 - [@nullptroma](https://github.com/nullptroma) – Original OpenSUSE script
+
+                        
+## stars because i like big numbers
+[![Stargazers over time](https://starchart.cc/EisregenHaha/fedora-hyprland.svg?variant=adaptive)](https://starchart.cc/EisregenHaha/fedora-hyprland)
+
+                    
