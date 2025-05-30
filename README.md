@@ -20,7 +20,7 @@ For the Arch version, visit: [end-4/dots-hyprland](https://github.com/end-4/dots
 
 ##  Preview
 
-![Screenshot](https://github.com/user-attachments/assets/c824d283-de7a-4730-a310-d6b468a71689)
+![Screenshot_2025-05-30_02 56 51](https://github.com/user-attachments/assets/ae859013-0537-4f51-afd6-64545777aeea)
 
 ---
 
