@@ -60,12 +60,9 @@ To update the configs:
 
 ### Keybinds
 - Default keybinds: Parts similar to Windows and GNOME. Hit Super+/ for a list
-<details> 
-       <summary>Here's an image, just in case...</summary>
     
-       ![image](https://github.com/user-attachments/assets/c09531c9-3b55-493a-880f-7e044cd9dca0)
+   ![image](https://github.com/user-attachments/assets/c09531c9-3b55-493a-880f-7e044cd9dca0)
 
-</details>
 
 ### Archive (not needed)
 - Original (outdated) discussion: [#840](https://github.com/end-4/dots-hyprland/discussions/840)
