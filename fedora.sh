@@ -81,7 +81,7 @@ run_update() {
 while true; do
     echo -e "\n${YELLOW}Select an option:${NC}"
     echo "1) Full install"
-    echo "2) Update dotfiles (preserves hypr/custom)"
+    echo "2) Update dotfiles (preserves hypr/custom and ags/user_options.jsonc)"
     echo ""
     echo -e "\n${YELLOW}Partial Installations (be sure of what you are doing):${NC}"
     echo "3) Install Fonts"
