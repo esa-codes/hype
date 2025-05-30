@@ -51,9 +51,8 @@ To update the configs:
 ## Notes
 
 ### Regarding Updates
-> Place any custom Hyprland config changes in `.config/hypr/custom`.  
+> Place any custom Hyprland config changes in `.config/hypr/custom` and then comment out the old configuration in `.config/hypr/hyprland.conf`.
 > These files are **not overwritten** by the update process. Otherwise you **will** lose your configuration changes after updating.  
-> This is also where resolution, keyboard, cursor, and input settings now live.
   
 ### For Nvidia users:
 - Uncomment the lines found in ~/.config/hypr/custom/env.conf
