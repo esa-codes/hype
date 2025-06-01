@@ -9,10 +9,13 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Get directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Script paths
-INSTALL_SCRIPT="install.sh"
-FONTS_SCRIPT="fonts.sh"
-MANUAL_HELPER_SCRIPT="../manual-install-helper.sh"
+INSTALL_SCRIPT="$SCRIPT_DIR/install.sh"
+FONTS_SCRIPT="$SCRIPT_DIR/fonts.sh"
+MANUAL_HELPER_SCRIPT="$SCRIPT_DIR/../manual-install-helper.sh"
 
 # Ask if user wants to exit
 ask_exit() {
