@@ -10,9 +10,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Script paths
-INSTALL_SCRIPT="fedora/install.sh"
-FONTS_SCRIPT="fedora/fonts.sh"
-MANUAL_HELPER_SCRIPT="manual-install-helper.sh"
+INSTALL_SCRIPT="install.sh"
+FONTS_SCRIPT="fonts.sh"
+MANUAL_HELPER_SCRIPT="../manual-install-helper.sh"
 
 # Ask if user wants to exit
 ask_exit() {
