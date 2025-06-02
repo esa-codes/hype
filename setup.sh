@@ -10,7 +10,7 @@ echo "Cloning Fedora Hyprland dotfiles..."
 # If the directory exists, prompt reuse or delete
 if [[ -d "$CLONE_DIR" ]]; then
     echo "Directory $CLONE_DIR already exists."
-    read -rp "Do you want to delete and re-clone it? (y/N): " confirm
+    read -rp "Do you want to re-download/update fonts (not needed unless you notice icons missing)? (y/N): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
         rm -rf "$CLONE_DIR"
         echo "Removed old directory."
