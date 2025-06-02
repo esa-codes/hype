@@ -9,9 +9,9 @@
 
 ---
 
-## ⚠️ Fedora Only
+## ⚠️ Fedora Workstation Only
 
-This script is intended for **Fedora**.  
+This script is intended for **Fedora Workstation**, other non-atomic variants like KDE Plasma should also work, but they have not been tested.
 For the Arch version, visit: [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)
 
 > ✅ **Tested on Fedora 42**
