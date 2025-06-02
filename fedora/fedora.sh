@@ -19,8 +19,8 @@ MANUAL_HELPER_SCRIPT="$SCRIPT_DIR/../manual-install-helper.sh"
 
 # Ask if user wants to exit
 ask_exit() {
-    echo -ne "${YELLOW}Do you want to exit the installer? (y/N): ${NC}"
-    read -r answer
+    read -n1 -r -p "$(echo -e "${YELLOW}Do you want to exit the installer? (y/N): ${NC}")" answer
+    echo
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         echo -e "${GREEN}Goodbye!${NC}"
         exit 0
@@ -42,24 +42,32 @@ run_script() {
     echo -e "${GREEN}✅ $script completed successfully.${NC}"
 }
 
-# Copy dotfiles into ~/.config and ~/.local (initial copy — no exclusions)
+# Force copy of dotfiles (no exclusions)
 copy_dotfiles() {
-    echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local...${NC}"
+    echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local (no exclusions)...${NC}"
     cp -Rf .config/* ~/.config/ || { echo -e "${RED}❌ Failed copying .config${NC}"; exit 1; }
     cp -Rf .local/* ~/.local/   || { echo -e "${RED}❌ Failed copying .local${NC}"; exit 1; }
     echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
 }
 
-# Copy dotfiles for update (exclude hypr/custom)
-copy_dotfiles_update() {
-    echo -e "${YELLOW}Updating dotfiles in ~/.config and ~/.local (preserving hypr/custom and ags/user_options.jsonc)...${NC}"
-    rsync -a \
-      --exclude 'hypr/custom/**' \
-      --exclude 'ags/user_options.jsonc' \
-      --exclude 'hypr/hyprland.conf' \
-      .config/ ~/.config/ || { echo -e "${RED}❌ Failed updating .config${NC}"; exit 1; }
-    rsync -a .local/ ~/.local/ || { echo -e "${RED}❌ Failed updating .local${NC}"; exit 1; }
-    echo -e "${GREEN}✅ Dotfiles updated successfully.${NC}"
+# Smart dotfiles copy (skip custom/user files if already present)
+copy_dotfiles_smart() {
+    echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local...${NC}"
+    
+    mkdir -p ~/.config ~/.local
+
+    RSYNC_EXCLUDES=()
+    [[ -e ~/.config/hypr/custom ]] && RSYNC_EXCLUDES+=(--exclude 'hypr/custom/**')
+    [[ -e ~/.config/ags/user_options.jsonc ]] && RSYNC_EXCLUDES+=(--exclude 'ags/user_options.jsonc')
+    [[ -e ~/.config/hypr/hyprland.conf ]] && RSYNC_EXCLUDES+=(--exclude 'hypr/hyprland.conf')
+
+    rsync -a "${RSYNC_EXCLUDES[@]}" .config/ ~/.config/ \
+        || { echo -e "${RED}❌ Failed copying to ~/.config${NC}"; exit 1; }
+
+    rsync -a .local/ ~/.local/ \
+        || { echo -e "${RED}❌ Failed copying to ~/.local${NC}"; exit 1; }
+
+    echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
 }
 
 # Full install: all scripts + dotfiles
@@ -68,34 +76,24 @@ run_full_install() {
     run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; exit 1; }
     run_script "$FONTS_SCRIPT" ""     || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; exit 1; }
     run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; exit 1; }
-    copy_dotfiles
+    copy_dotfiles_smart
     echo -e "${GREEN}🎉 Full installation completed successfully! You can now reboot and select Hyprland at login.${NC}"
-}
-
-# Update: install deps + update dotfiles
-run_update() {
-    echo -e "${YELLOW}Running update (dependencies + configs)...${NC}"
-    run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; exit 1; }
-    copy_dotfiles_update
-    run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; exit 1; }
-    echo -e "${GREEN}🎉 Update completed successfully!${NC}"
 }
 
 # Menu loop
 while true; do
     echo -e "\n${YELLOW}Select an option:${NC}"
-    echo "1) Full install"
-    echo "2) Update dotfiles (preserves hypr/custom and ags/user_options.jsonc)"
+    echo "1) Full install/Update"
     echo ""
     echo -e "\n${YELLOW}Partial Installations (be sure of what you are doing):${NC}"
-    echo "3) Install Fonts"
-    echo "4) Run manual-install-helper.sh"
-    echo "5) Copy dotfiles to ~/.config and ~/.local"
-    echo "6) Install Dependencies"
-    echo "7) Exit"
+    echo "2) Install/Update Fonts"
+    echo "3) Run manual-install-helper.sh"
+    echo "4) Force Copy ~/.config and ~/.local (no exclusions)"
+    echo "5) Install Dependencies"
+    echo "6) Exit"
     echo ""
 
-    read -rp "Enter your choice [1-7]: " choice
+    read -rp "Enter your choice [1-6]: " choice
 
     case "$choice" in
         1)
@@ -103,31 +101,27 @@ while true; do
             exit 0
             ;;
         2)
-            run_update
-            ask_exit
-            ;;
-        3)
             run_script "$FONTS_SCRIPT" "" || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; }
             ask_exit
             ;;
-        4)
+        3)
             run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; }
             ask_exit
             ;;
-        5)
+        4)
             copy_dotfiles
             ask_exit
             ;;
-        6)
+        5)
             run_script "$INSTALL_SCRIPT" sudo || { echo -e "${RED}❌ Failed: $INSTALL_SCRIPT${NC}"; }
             ask_exit
             ;;
-        7)
+        6)
             echo -e "${GREEN}Goodbye!${NC}"
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please enter a number from 1 to 7.${NC}"
+            echo -e "${RED}Invalid option. Please enter a number from 1 to 6.${NC}"
             ;;
     esac
 done
