@@ -44,7 +44,7 @@ To update the configs:
 
 1. Make sure you have read the Notes
 2. Run the script again.
-3. Select **option 2 (Update dotfiles)** in the menu.
+3. Select **option 1** again in the menu.
 
 ---
 
