@@ -102,10 +102,11 @@ while true; do
     echo "3) Run manual-install-helper.sh"
     echo "4) Force Copy ~/.config and ~/.local (no exclusions)"
     echo "5) Install Dependencies"
-    echo "6) Exit"
+    echo "6) Update config files with exclusions"
+    echo "7) Exit"
     echo ""
 
-    read -rp "Enter your choice [1-6]: " choice
+    read -rp "Enter your choice [1-7]: " choice
 
     case "$choice" in
         1)
@@ -129,6 +130,10 @@ while true; do
             ask_exit
             ;;
         6)
+            copy_dotfiles_smart
+            ask_exit
+            ;;
+        7)
             echo -e "${GREEN}Goodbye!${NC}"
             exit 0
             ;;
