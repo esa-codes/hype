@@ -50,7 +50,7 @@ copy_dotfiles() {
     echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
 }
 
-# Smart dotfiles copy (skip custom/user files if already present)
+# dotfiles copy (skip custom/user files if already present)
 copy_dotfiles_smart() {
     echo -e "${YELLOW}Copying dotfiles to ~/.config and ~/.local...${NC}"
     
@@ -67,6 +67,8 @@ copy_dotfiles_smart() {
     rsync -a .local/ ~/.local/ \
         || { echo -e "${RED}❌ Failed copying to ~/.local${NC}"; exit 1; }
 
+    fix_gtk_ownership
+
     echo -e "${GREEN}✅ Dotfiles copied successfully.${NC}"
 }
 
@@ -77,7 +79,17 @@ run_full_install() {
     run_script "$FONTS_SCRIPT" ""     || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; exit 1; }
     run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; exit 1; }
     copy_dotfiles_smart
+    fix_gtk_ownership
     echo -e "${GREEN}🎉 Full installation completed successfully! You can now reboot and select Hyprland at login.${NC}"
+}
+
+# fix themes
+fix_gtk_ownership() {
+    local user=$(whoami)
+    echo "Changing ownership of GTK 4.0 config files to user: $user"
+    sudo chown "$user" ~/.config/gtk-4.0
+    sudo chown "$user" ~/.config/gtk-4.0/gtk.css
+    sudo chown "$user" ~/.config/gtk-4.0/gtk-dark.css
 }
 
 # Menu loop
