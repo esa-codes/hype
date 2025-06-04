@@ -34,7 +34,7 @@ Run the automatic installer:
 bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
 ```
 
-Then **reboot** and select the **Hyprland (uwsm)** session to log in.
+Then **reboot** and select the **Hyprland (non-uwsm)** session to log in.
 
 ---
 
