@@ -96,14 +96,14 @@ fix_gtk_ownership() {
 while true; do
     echo -e "\n${YELLOW}Select an option:${NC}"
     echo "1) Full install/Update"
+    echo "2) Exit"
     echo ""
     echo -e "\n${YELLOW}Partial Installations (be sure of what you are doing):${NC}"
-    echo "2) Install/Update Fonts"
     echo "3) Run manual-install-helper.sh"
     echo "4) Force Copy ~/.config and ~/.local (no exclusions)"
     echo "5) Install Dependencies"
     echo "6) Update config files with exclusions"
-    echo "7) Exit"
+    echo "7) Install/Update Fonts"
     echo ""
 
     read -rp "Enter your choice [1-7]: " choice
@@ -114,8 +114,8 @@ while true; do
             exit 0
             ;;
         2)
-            run_script "$FONTS_SCRIPT" "" || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; }
-            ask_exit
+            echo -e "${GREEN}Goodbye!${NC}"
+            exit 0
             ;;
         3)
             run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; }
@@ -134,8 +134,8 @@ while true; do
             ask_exit
             ;;
         7)
-            echo -e "${GREEN}Goodbye!${NC}"
-            exit 0
+            run_script "$FONTS_SCRIPT" "" || { echo -e "${RED}❌ Failed: $FONTS_SCRIPT${NC}"; }
+            ask_exit
             ;;
         *)
             echo -e "${RED}Invalid option. Please enter a number from 1 to 6.${NC}"
