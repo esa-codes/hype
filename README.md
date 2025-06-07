@@ -33,6 +33,11 @@ Run the automatic installer:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
 ```
+or if you are using fish shell (non-posix-compliant shell) then:
+   
+```bash
+bash -c "$(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)"
+```
 
 Then **reboot** and select the **Hyprland (non-uwsm)** session to log in.
 
