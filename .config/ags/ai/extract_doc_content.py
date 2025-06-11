@@ -6,20 +6,28 @@ import logging
 import datetime
 
 # Setup logging
-LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
-LOG_FILE = os.path.join(LOG_DIR, f"extract_doc_content_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE = os.path.join(SCRIPT_DIR, f"extract_doc_content_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        # logging.StreamHandler(sys.stderr) # Uncomment to also print to stderr
-    ]
-)
-logger = logging.getLogger(__name__)
+try:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(LOG_FILE),
+            # logging.StreamHandler(sys.stderr) # Uncomment to also print to stderr
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    logger.info("Logging initialized successfully.") # Test log message
+except Exception as e_log_setup:
+    print(f"Error setting up logging: {e_log_setup}", file=sys.stderr)
+    # Fallback to a dummy logger or exit if logging is critical
+    class DummyLogger:
+        def info(self, msg, *args, **kwargs): print(f"INFO: {msg}", file=sys.stderr)
+        def error(self, msg, *args, **kwargs): print(f"ERROR: {msg}", file=sys.stderr)
+        def warning(self, msg, *args, **kwargs): print(f"WARNING: {msg}", file=sys.stderr)
+    logger = DummyLogger()
 
 # For image OCR, you might need to install pytesseract and Pillow:
 # pip install pytesseract Pillow
