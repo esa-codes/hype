@@ -31,12 +31,12 @@ For the Arch version, visit: [end-4/dots-hyprland](https://github.com/end-4/dots
 Run the automatic installer:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/esa-codes/hype/main/setup.sh)
 ```
 or if you are using fish shell (non-posix-compliant shell) then:
    
 ```bash
-bash -c "$(curl -s https://raw.githubusercontent.com/EisregenHaha/fedora-hyprland/main/setup.sh)"
+bash -c "$(curl -s https://raw.githubusercontent.com/esa-codes/hype/main/setup.sh)"
 ```
 
 Then **reboot** and select the **Hyprland (non-uwsm)** session to log in.
@@ -79,6 +79,6 @@ To update the configs:
 
                         
 ## stars because i like big numbers
-[![Stargazers over time](https://starchart.cc/EisregenHaha/fedora-hyprland.svg?variant=adaptive)](https://starchart.cc/EisregenHaha/fedora-hyprland)
+[![Stargazers over time](https://starchart.cc/esa-codes/hype.svg?variant=adaptive)](https://starchart.cc/esa-codes/hype)
 
                     

@@ -2,7 +2,7 @@
 
 set -e
 
-REPO_URL="https://github.com/EisregenHaha/fedora-hyprland"
+REPO_URL="git@github.com:esa-codes/hype.git"
 CLONE_DIR="$HOME/.cache/fedora-hyprland"
 
 echo "Cloning Fedora Hyprland dotfiles..."
