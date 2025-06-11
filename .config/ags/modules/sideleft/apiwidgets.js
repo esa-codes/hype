@@ -203,7 +203,12 @@ const chatAttachButton = Button({
             }
         } catch (error) {
             console.error("Error attaching file:", error);
-            // Optionally, inform the user via a notification or in the chat
+            const currentText = chatEntry.get_buffer().text;
+            // Try to get a more specific message if available (e.g. from stderr if error.message includes it)
+            const errorMessage = error.message || "Failed to extract content from file.";
+            const newText = `Error attaching file: ${errorMessage}\n\n${currentText}`;
+            chatEntry.get_buffer().set_text(newText, -1);
+            chatEntry.grab_focus(); // Focus on the entry after adding text
         }
     },
 });

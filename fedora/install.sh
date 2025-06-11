@@ -49,7 +49,7 @@ sudo dnf install brightnessctl ddcutil -y
 sudo dnf install pavucontrol wireplumber libdbusmenu-gtk3-devel libdbusmenu playerctl swww -y
 
 # Other individual tools
-sudo dnf install yad -y
+sudo dnf install yad zenity -y
 sudo dnf install scdoc -y
 sudo dnf install ydotool -y
 sudo dnf install tinyxml -y
@@ -63,7 +63,7 @@ sudo dnf install kvantum kvantum-qt5 -y
 sudo dnf install libxdp-devel libxdp libportal -y
 
 # Screenshot and screen recording tools
-sudo dnf install swappy wf-recorder grim tesseract slurp -y
+sudo dnf install swappy wf-recorder grim tesseract tesseract-langpack-eng slurp -y
 
 # AppStream and web libs
 sudo dnf install appstream-util libsoup3-devel uv -y
