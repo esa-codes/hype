@@ -176,6 +176,38 @@ const chatPlaceholderRevealer = Revealer({
     setup: enableClickthrough,
 });
 
+const chatAttachButton = Button({
+    className: 'txt-norm icon-material sidebar-chat-send',
+    vpack: 'end',
+    label: 'attach_file', // Material icon for a paperclip
+    setup: setupCursorHover,
+    onClicked: async () => {
+        try {
+            const filePath = await Utils.subprocess([
+                'zenity',
+                '--file-selection',
+                '--title=Choose a file to use as context',
+            ], (path) => path.trim(), (err) => {
+                console.error("File selection cancelled or failed:", err);
+                return null;
+            });
+
+            if (filePath && filePath.length > 0) {
+                const scriptPath = `${App.configDir}/ai/extract_doc_content.py`;
+                const fileContent = await Utils.execAsync(['python', scriptPath, filePath]);
+                const currentText = chatEntry.get_buffer().text;
+                const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+                const newText = `Context from file [${fileName}]:\n${fileContent}\n\n${currentText}`;
+                chatEntry.get_buffer().set_text(newText, -1);
+                chatEntry.grab_focus(); // Focus on the entry after adding text
+            }
+        } catch (error) {
+            console.error("Error attaching file:", error);
+            // Optionally, inform the user via a notification or in the chat
+        }
+    },
+});
+
 const textboxArea = Box({ // Entry area
     className: 'sidebar-chat-textarea',
     children: [
@@ -185,6 +217,7 @@ const textboxArea = Box({ // Entry area
             overlays: [chatPlaceholderRevealer],
         }),
         Box({ className: 'width-10' }),
+        chatAttachButton, // Added attach button
         chatSendButton,
     ]
 });
