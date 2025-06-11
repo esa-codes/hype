@@ -2,6 +2,24 @@
 import sys
 import textract
 import os
+import logging
+import datetime
+
+# Setup logging
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+LOG_FILE = os.path.join(LOG_DIR, f"extract_doc_content_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        # logging.StreamHandler(sys.stderr) # Uncomment to also print to stderr
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # For image OCR, you might need to install pytesseract and Pillow:
 # pip install pytesseract Pillow
@@ -30,13 +48,13 @@ def is_image_file(file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python extract_doc_content.py <file_path>", file=sys.stderr)
+        logger.error("Usage: python extract_doc_content.py <file_path>")
         sys.exit(1)
 
     file_path = sys.argv[1]
 
     if not os.path.exists(file_path):
-        print(f"Error: File not found at {file_path}", file=sys.stderr)
+        logger.error(f"File not found at {file_path}")
         sys.exit(1)
 
     extracted_text = None
@@ -47,7 +65,8 @@ if __name__ == "__main__":
         text_bytes = textract.process(file_path)
         extracted_text = text_bytes.decode('utf-8').strip()
     except Exception as e_textract:
-        error_message = f"textract failed: {e_textract}"
+        error_message = f"textract failed: {str(e_textract)}"
+        logger.error(f"Textract processing failed for {file_path}: {e_textract}", exc_info=True)
         # Attempt 2: If textract failed and it's an image, try pytesseract directly
         if is_image_file(file_path):
             if pytesseract and Image:
@@ -55,21 +74,33 @@ if __name__ == "__main__":
                     extracted_text = pytesseract.image_to_string(Image.open(file_path)).strip()
                     error_message = None # Clear previous error if pytesseract succeeded
                 except Exception as e_ocr:
-                    error_message += f"\nPytesseract OCR failed: {e_ocr}. Ensure tesseract-ocr is installed and in PATH."
+                    ocr_error_detail = f"Pytesseract OCR failed: {str(e_ocr)}. Ensure tesseract-ocr is installed and in PATH."
+                    error_message += f"\n{ocr_error_detail}"
+                    logger.error(f"Pytesseract OCR failed for {file_path}: {e_ocr}", exc_info=True)
             elif not pytesseract:
-                 error_message += "\nPytesseract library not found, cannot perform direct OCR."
+                 pt_error = "Pytesseract library not found, cannot perform direct OCR."
+                 error_message += f"\n{pt_error}"
+                 logger.warning(pt_error)
             elif not Image:
-                 error_message += "\nPillow (PIL) library not found, cannot perform direct OCR."
-        else:
-            error_message += "\nFile is not a recognized image type for direct OCR fallback."
+                 pil_error = "Pillow (PIL) library not found, cannot perform direct OCR."
+                 error_message += f"\n{pil_error}"
+                 logger.warning(pil_error)
+        # If textract failed and it's not an image, the error_message from textract is the primary issue.
+        # No specific fallback for non-image types beyond textract's capabilities here.
+        pass # error_message already holds the textract error
 
     if extracted_text:
+        logger.info(f"Successfully extracted text from {os.path.basename(file_path)}.")
         print(extracted_text)
-    else:
-        final_error = f"Error processing file {file_path}."
-        if error_message:
-            final_error += f" Details: {error_message}"
-        else:
-            final_error += " Unknown error or empty content."
-        print(final_error, file=sys.stderr)
+    elif error_message: # If textract or OCR failed, log the detailed error
+        final_error_msg = f"Error processing file {os.path.basename(file_path)}: {error_message}"
+        logger.error(final_error_msg)
+        # Still print to stderr so apiwidgets.js can capture it for display in UI
+        print(final_error_msg, file=sys.stderr)
+        sys.exit(1)
+    else: # Should not happen if error_message is always set on failure
+        unknown_error_msg = f"Error: Failed to extract content from {os.path.basename(file_path)}. Unknown error or empty content."
+        logger.error(unknown_error_msg)
+        # Still print to stderr
+        print(unknown_error_msg, file=sys.stderr)
         sys.exit(1)
