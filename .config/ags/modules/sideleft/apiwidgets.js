@@ -15,6 +15,19 @@ import { enableClickthrough } from "../.widgetutils/clickthrough.js";
 import { checkKeybind } from '../.widgetutils/keybind.js';
 const TextView = Widget.subclass(Gtk.TextView, "AgsTextView");
 
+// To store the filename and context
+let attachedFileName = '';
+let fileRawContext = '';
+
+// Label to display the attached file name
+const AttachedFileLabel = Label({
+    className: 'txt-smallie sidebar-chat-attached-file-label',
+    xalign: 0,
+    truncate: 'end',
+    maxWidthChars: 20, // Adjust as needed
+    visible: false, // Initially hidden
+});
+
 import { widgetContent } from './sideleft.js';
 import { IconTabContainer } from '../.commonwidgets/tabcontainer.js';
 import { updateNestedProperty } from '../.miscutils/objects.js';
@@ -111,17 +124,41 @@ const APIS = userOptions.sidebar.pages.apis.order.map((apiName) => {
 let currentApiId = APIS.findIndex(obj => obj.id === userOptions.sidebar.pages.apis.defaultPage);
 
 function apiSendMessage(textView) {
-    // Get text
     const buffer = textView.get_buffer();
     const [start, end] = buffer.get_bounds();
-    const text = buffer.get_text(start, end, true).trimStart();
-    if (!text || text.length == 0) return;
-    // Send
+    let userMessage = buffer.get_text(start, end, true).trimStart();
+
+    // Handle clear command specifically to also clear attached file context
+    if (userMessage.startsWith('/clear')) {
+        fileRawContext = '';
+        attachedFileName = '';
+        AttachedFileLabel.label = '';
+        AttachedFileLabel.visible = false;
+        // The actual clearing of messages is handled by the specific API's command handler
+    }
+
+    let messageToSend = userMessage;
+    if (fileRawContext) {
+        // Only prepend context if the message is not a clear command that already handled it
+        if (!userMessage.startsWith('/clear')) {
+            messageToSend = fileRawContext + userMessage;
+        }
+        // For all messages (including /clear if it was attached), clear context after this send
+        fileRawContext = '';
+        attachedFileName = '';
+        AttachedFileLabel.label = '';
+        AttachedFileLabel.visible = false;
+    }
+
+    if (!messageToSend.trim() && !userMessage.startsWith('/clear')) return; // Don't send if the final message is empty, unless it's /clear
+
+    console.log("Text being sent to AI (with hidden context if any):", messageToSend); // For debugging
+
     if (APIS[currentApiId].name == APILIST['booru'].name)
-        APIS[currentApiId].sendCommand(text, APILIST['booru'].contentWidget)
+        APIS[currentApiId].sendCommand(messageToSend, APILIST['booru'].contentWidget);
     else
-        APIS[currentApiId].sendCommand(text)
-    // Reset
+        APIS[currentApiId].sendCommand(messageToSend);
+
     buffer.set_text("", -1);
     chatEntryWrapper.toggleClassName('sidebar-chat-wrapper-extended', false);
     chatEntry.set_valign(Gtk.Align.CENTER);
@@ -194,21 +231,26 @@ const chatAttachButton = Button({
 
             if (filePath && filePath.length > 0) {
                 const scriptPath = `${App.configDir}/ai/extract_doc_content.py`;
-                const fileContent = await Utils.execAsync(['python', scriptPath, filePath]);
-                const currentText = chatEntry.get_buffer().text;
+                const extractedContent = await Utils.execAsync(['python', scriptPath, filePath]);
                 const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-                const newText = `Context from file [${fileName}]:\n${fileContent}\n\n${currentText}`;
-                chatEntry.get_buffer().set_text(newText, -1);
-                chatEntry.grab_focus(); // Focus on the entry after adding text
+                
+                fileRawContext = `Context from file [${fileName}]:\n${extractedContent}\n\n`;
+                attachedFileName = fileName;
+                AttachedFileLabel.label = `Context: ${fileName}`;
+                AttachedFileLabel.visible = true;
+                
+                // App.sendToast(`Attached ${fileName} as context.`); // Example toast, if you have a toast system
+                chatEntry.grab_focus();
             }
         } catch (error) {
             console.error("Error attaching file:", error);
-            const currentText = chatEntry.get_buffer().text;
-            // Try to get a more specific message if available (e.g. from stderr if error.message includes it)
             const errorMessage = error.message || "Failed to extract content from file.";
-            const newText = `Error attaching file: ${errorMessage}\n\n${currentText}`;
-            chatEntry.get_buffer().set_text(newText, -1);
-            chatEntry.grab_focus(); // Focus on the entry after adding text
+            // App.sendToast(`Error attaching file: ${errorMessage}`); // Example toast
+            fileRawContext = '';
+            attachedFileName = '';
+            AttachedFileLabel.label = '';
+            AttachedFileLabel.visible = false;
+            chatEntry.grab_focus();
         }
     },
 });
@@ -219,13 +261,50 @@ const textboxArea = Box({ // Entry area
         Overlay({
             passThrough: true,
             child: chatEntryWrapper,
-            overlays: [chatPlaceholderRevealer],
+            overlays: [
+                chatPlaceholderRevealer,
+            ],
         }),
         Box({ className: 'width-10' }),
-        chatAttachButton, // Added attach button
+        chatAttachButton,
         chatSendButton,
     ]
 });
+
+// We need to add the AttachedFileLabel to the UI, for example, above the textboxArea or near the username.
+// This example places it in a new Box above the textboxArea.
+// You'll need to decide the best place for it in your UI structure.
+// For instance, if there's a header box where the username is, that might be a good spot.
+// This is a placeholder for where you might add it:
+const AiTitle = () => Box({
+    className: 'sidebar-chat-apititle spacing-h-5',
+    hpack: 'center',
+    children: [
+        Label({
+            hpack: 'center',
+            className: 'txt-title-small sidebar-chat-apiname',
+            // Bind the label to the name of the currently selected API
+            // Assumes apiContentStack.shown is a Variable holding the index
+            // and APIS is accessible in this scope.
+            label: apiContentStack.shown.bind().as(id => APIS[id] ? APIS[id].name : ''),
+        }),
+        AttachedFileLabel, // Display the attached file name here
+    ]
+});
+
+// You would then use AiTitle where the API title is currently displayed.
+// The original code for apiContent an apiView might look something like this:
+// const apiContent = Box({
+//    className: 'sidebar-chat-content',
+//    vertical: true,
+//    children: [
+//        // Original title might be here or in a header
+//        APIS[currentApiId].contentWidget, // The actual chat view
+//        textboxArea, // Text input area
+//    ],
+// });
+// You'd need to integrate AiTitle() into that structure.
+// For now, I'm assuming there's a place to put AiTitle.
 
 const apiCommandStack = Stack({
     transition: 'slide_up_down',
@@ -272,6 +351,7 @@ const apiWidgets = Widget.Box({
     className: 'spacing-v-10',
     homogeneous: false,
     children: [
+        AiTitle(), // Add the title and attached file label here
         apiContentStack,
         apiCommandStack,
         textboxArea,
