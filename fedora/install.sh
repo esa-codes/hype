@@ -21,8 +21,10 @@ sudo dnf install cmake clang -y
 sudo dnf install cargo -y
 
 # Python packages
-sudo dnf install python3 python3-devel -y
+sudo dnf install python3 python3-devel python3-pillow python3-pytesseract -y
+sudo dnf install pulseaudio-libs-devel libxml2-devel libxslt1-devel antiword poppler-utils swig -y
 sudo dnf install unzip hypridle libsoup-devel -y
+sudo pip3 install textract
 
 # Hyprland and related packages
 sudo dnf install hyprland hyprland-qtutils -y
