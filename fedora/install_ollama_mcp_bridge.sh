@@ -5,13 +5,28 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+# Configure npm settings for better reliability
+echo "Configuring npm settings..."
+npm config set fetch-retry-mintimeout 100000
+npm config set fetch-retry-maxtimeout 600000
+npm config set fetch-timeout 600000
+
 echo "Installing MCP servers..."
 
 # Install MCP servers globally
-if ! npm install -g @modelcontextprotocol/server-filesystem; then
-    echo "Failed to install @modelcontextprotocol/server-filesystem"
-    exit 1
-fi
+MAX_RETRIES=3
+for i in $(seq 1 $MAX_RETRIES); do
+    if npm install -g @modelcontextprotocol/server-filesystem; then
+        break
+    else
+        if [ $i -eq $MAX_RETRIES ]; then
+            echo "Failed to install @modelcontextprotocol/server-filesystem after $MAX_RETRIES attempts"
+            exit 1
+        fi
+        echo "Attempt $i failed. Retrying in 10 seconds..."
+        sleep 10
+    fi
+done
 
 if ! npm install -g @modelcontextprotocol/server-brave-search; then
     echo "Failed to install @modelcontextprotocol/server-brave-search"
