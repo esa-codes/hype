@@ -230,41 +230,9 @@ const chatAttachButton = Button({
             });
 
             if (filePath && filePath.length > 0) {
-                // New: Call mcphost server to process the document with Ollama
-                const mcphostUrl = 'http://localhost:3456/chat'; // Default ollama-mcp port, mcphost might be similar
-                const payload = JSON.stringify({
-                    // model: "your-ollama-model-name", // Or mcphost default
-                    prompt: `Please analyze and extract the key information from the document located at: ${filePath}`,
-                    // Alternatively, if mcphost uses a messages array:
-                    // messages: [{ role: "user", content: `Please analyze and extract the key information from the document located at: ${filePath}` }]
-                });
-
-                console.log(`Sending to mcphost: ${payload}`);
-
-                const rawResponse = await Utils.subprocess([
-                    'curl',
-                    '-s', // Silent mode
-                    '-X', 'POST',
-                    '-H', 'Content-Type: application/json',
-                    '-d', payload,
-                    mcphostUrl,
-                ], (output) => {
-                    console.log("mcphost raw output:", output);
-                    try {
-                        return JSON.parse(output);
-                    } catch (e) {
-                        console.error('Failed to parse mcphost JSON response:', e);
-                        throw new Error('Invalid JSON response from MCP server.');
-                    }
-                }, (err) => {
-                    console.error("mcphost request failed:", err);
-                    throw new Error('Failed to communicate with MCP server.');
-                });
-
-                // Assuming the response has a field containing the extracted text, e.g., response.choices[0].message.content or response.content or response.response
-                // This will depend on the actual structure of the mcphost/Ollama response
-                const extractedContent = rawResponse.response || (rawResponse.choices && rawResponse.choices[0].message.content) || rawResponse.content || JSON.stringify(rawResponse); 
-                console.log("Extracted content from mcphost:", extractedContent);
+                const scriptPath = `${App.configDir}/ai/extract_doc_content.py`;
+                const pythonInterpreter = GLib.get_home_dir() + '/.local/state/ags/.venv/bin/python';
+                const extractedContent = await Utils.execAsync([pythonInterpreter, scriptPath, filePath]);
                 const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
                 
                 fileRawContext = `Context from file [${fileName}]:\n${extractedContent}\n\n`;
