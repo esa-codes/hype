@@ -87,7 +87,7 @@ run_full_install() {
 # Install Ollama MCP Bridge
 run_ollama_mcp_bridge_install() {
     echo -e "${YELLOW}Starting Ollama MCP Bridge installation...${NC}"
-    run_script "$OLLAMA_MCP_BRIDGE_SCRIPT" "" || { echo -e "${RED}❌ Failed: $OLLAMA_MCP_BRIDGE_SCRIPT${NC}"; exit 1; }
+    run_script "$OLLAMA_MCP_BRIDGE_SCRIPT" "sudo" || { echo -e "${RED}❌ Failed: $OLLAMA_MCP_BRIDGE_SCRIPT${NC}"; exit 1; }
     echo -e "${GREEN}✅ Ollama MCP Bridge installation completed successfully!${NC}"
 }
 
