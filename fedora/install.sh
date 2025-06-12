@@ -88,50 +88,6 @@ tar -xzf dart-sass-*-linux-x64.tar.gz
 cd dart-sass
 sudo cp -rf * /usr/local/bin/
 
-# Install Go
-echo "Installing Go (needed for mcphost)..."
-sudo dnf install golang -y
-hash -r # Reset the shell's command hash to recognize the new 'go' command
-if ! command -v go &> /dev/null
-then
-    echo "Error: 'go' command not found after 'sudo dnf install golang -y'. Please check DNF logs or if Go is installed to a standard PATH location."
-    # exit 1 # Optionally exit if critical
-fi
-echo "Go installation completed."
-
-# Custom tool: mcphost
-echo "Starting mcphost installation..."
-# Ensure GOPATH/bin is in PATH for the user running the script or handle it explicitly
-# The go install command will typically place binaries in $HOME/go/bin (if GOPATH is not set) or $GOPATH/bin
-# Run go install as the regular user, then sudo cp
-echo "Updating PATH to include Go binary directories..."
-export PATH=$PATH:$(go env GOPATH)/bin:$HOME/go/bin # Ensure go binaries are findable
-echo "PATH updated: $PATH"
-echo "Running 'go install github.com/mark3labs/mcphost@latest'..."
-go install github.com/mark3labs/mcphost@latest
-GO_INSTALL_STATUS=$?
-echo "'go install' command finished with status: $GO_INSTALL_STATUS."
-
-if [ $GO_INSTALL_STATUS -ne 0 ]; then
-    echo "Error: 'go install github.com/mark3labs/mcphost@latest' failed with status $GO_INSTALL_STATUS. Please check the output above for error messages from the Go compiler or network issues."
-    # exit 1 # Optionally exit if critical
-fi
-
-echo "Checking for mcphost binary..."
-if [ -f "$(go env GOPATH)/bin/mcphost" ]; then
-    echo "mcphost found in $(go env GOPATH)/bin/mcphost. Copying to /usr/local/bin/..."
-    sudo cp "$(go env GOPATH)/bin/mcphost" /usr/local/bin/
-    echo "mcphost copied to /usr/local/bin/."
-elif [ -f "$HOME/go/bin/mcphost" ]; then
-    echo "mcphost found in $HOME/go/bin/mcphost. Copying to /usr/local/bin/..."
-    sudo cp "$HOME/go/bin/mcphost" /usr/local/bin/
-    echo "mcphost copied to /usr/local/bin/."
-else
-    echo "Error: mcphost binary not found after installation. Please check your Go environment (GOPATH, GOBIN, \$HOME/go/bin)."
-    # exit 1 # Optionally exit if critical
-fi
-echo "mcphost installation process finished."
-
 
 # Build & install anyrun
 cd "$t"
@@ -143,6 +99,14 @@ sudo cp "$HOME/.cargo/bin/anyrun" /usr/local/bin/
 mkdir -p ~/.config/anyrun/plugins
 cp target/release/*.so ~/.config/anyrun/plugins
 cp examples/config.ron ~/.config/anyrun/config.ron
+
+# Install ollama-mcp-bridge
+echo "Running ollama-mcp-bridge installation script..."
+if [ -f "/home/eev/hype/fedora/install_ollama_mcp_bridge.sh" ]; then
+    bash /home/eev/hype/fedora/install_ollama_mcp_bridge.sh
+else
+    echo "Warning: /home/eev/hype/fedora/install_ollama_mcp_bridge.sh not found."
+fi
 
 rm -rf "$t"
 
