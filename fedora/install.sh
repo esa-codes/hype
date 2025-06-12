@@ -91,6 +91,7 @@ sudo cp -rf * /usr/local/bin/
 # Install Go
 echo "Installing Go (needed for mcphost)..."
 sudo dnf install golang -y
+hash -r # Reset the shell's command hash to recognize the new 'go' command
 if ! command -v go &> /dev/null
 then
     echo "Error: 'go' command not found after 'sudo dnf install golang -y'. Please check DNF logs or if Go is installed to a standard PATH location."
