@@ -91,6 +91,11 @@ sudo cp -rf * /usr/local/bin/
 # Install Go
 echo "Installing Go (needed for mcphost)..."
 sudo dnf install golang -y
+if ! command -v go &> /dev/null
+then
+    echo "Error: 'go' command not found after 'sudo dnf install golang -y'. Please check DNF logs or if Go is installed to a standard PATH location."
+    # exit 1 # Optionally exit if critical
+fi
 echo "Go installation completed."
 
 # Custom tool: mcphost
@@ -103,7 +108,13 @@ export PATH=$PATH:$(go env GOPATH)/bin:$HOME/go/bin # Ensure go binaries are fin
 echo "PATH updated: $PATH"
 echo "Running 'go install github.com/mark3labs/mcphost@latest'..."
 go install github.com/mark3labs/mcphost@latest
-echo "'go install' command finished."
+GO_INSTALL_STATUS=$?
+echo "'go install' command finished with status: $GO_INSTALL_STATUS."
+
+if [ $GO_INSTALL_STATUS -ne 0 ]; then
+    echo "Error: 'go install github.com/mark3labs/mcphost@latest' failed with status $GO_INSTALL_STATUS. Please check the output above for error messages from the Go compiler or network issues."
+    # exit 1 # Optionally exit if critical
+fi
 
 echo "Checking for mcphost binary..."
 if [ -f "$(go env GOPATH)/bin/mcphost" ]; then
