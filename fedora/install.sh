@@ -20,11 +20,14 @@ sudo dnf copr enable solopasha/hyprland -y
 sudo dnf install cmake clang -y
 sudo dnf install cargo -y
 
-# Python packages
+# Python packages and textract dependencies
 sudo dnf install python3 python3-devel python3-pillow python3-pytesseract -y
 sudo dnf install pulseaudio-libs-devel libxml2-devel libxslt1-devel antiword poppler-utils swig -y
-sudo dnf install unzip hypridle libsoup-devel -y
-sudo pip3 install textract
+sudo dnf install unzip hypridle libsoup-devel python3-pip -y
+
+# Install textract and its dependencies via pip after ensuring system dependencies are installed
+sudo python3 -m pip install --upgrade pip
+sudo python3 -m pip install textract
 
 # Hyprland and related packages
 sudo dnf install hyprland hyprland-qtutils -y
