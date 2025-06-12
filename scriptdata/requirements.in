@@ -1,7 +1,6 @@
 build
 pillow
 setuptools-scm
-textract
 wheel
 pywayland
 psutil
