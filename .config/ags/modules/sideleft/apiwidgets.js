@@ -231,7 +231,8 @@ const chatAttachButton = Button({
 
             if (filePath && filePath.length > 0) {
                 const scriptPath = `${App.configDir}/ai/extract_doc_content.py`;
-                const extractedContent = await Utils.execAsync(['python', scriptPath, filePath]);
+                const pythonInterpreter = GLib.get_home_dir() + '/.local/state/ags/.venv/bin/python';
+                const extractedContent = await Utils.execAsync([pythonInterpreter, scriptPath, filePath]);
                 const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
                 
                 fileRawContext = `Context from file [${fileName}]:\n${extractedContent}\n\n`;
