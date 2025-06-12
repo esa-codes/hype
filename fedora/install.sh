@@ -88,6 +88,25 @@ tar -xzf dart-sass-*-linux-x64.tar.gz
 cd dart-sass
 sudo cp -rf * /usr/local/bin/
 
+# Install Go
+sudo dnf install golang -y
+
+# Custom tool: mcphost
+echo "Installing mcphost..."
+# Ensure GOPATH/bin is in PATH for the user running the script or handle it explicitly
+# The go install command will typically place binaries in $HOME/go/bin (if GOPATH is not set) or $GOPATH/bin
+# Run go install as the regular user, then sudo cp
+export PATH=$PATH:$(go env GOPATH)/bin:$HOME/go/bin # Ensure go binaries are findable
+go install github.com/mark3labs/mcphost@latest
+if [ -f "$(go env GOPATH)/bin/mcphost" ]; then
+    sudo cp "$(go env GOPATH)/bin/mcphost" /usr/local/bin/
+elif [ -f "$HOME/go/bin/mcphost" ]; then
+    sudo cp "$HOME/go/bin/mcphost" /usr/local/bin/
+else
+    echo "Error: mcphost binary not found after installation. Please check your Go environment."
+    # exit 1 # Optionally exit if critical
+fi
+
 # Build & install anyrun
 cd "$t"
 git clone https://github.com/anyrun-org/anyrun.git

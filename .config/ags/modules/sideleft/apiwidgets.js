@@ -15,19 +15,6 @@ import { enableClickthrough } from "../.widgetutils/clickthrough.js";
 import { checkKeybind } from '../.widgetutils/keybind.js';
 const TextView = Widget.subclass(Gtk.TextView, "AgsTextView");
 
-// To store the filename and context
-let attachedFileName = '';
-let fileRawContext = '';
-
-// Label to display the attached file name
-const AttachedFileLabel = Label({
-    className: 'txt-smallie sidebar-chat-attached-file-label',
-    xalign: 0,
-    truncate: 'end',
-    maxWidthChars: 20, // Adjust as needed
-    visible: false, // Initially hidden
-});
-
 import { widgetContent } from './sideleft.js';
 import { IconTabContainer } from '../.commonwidgets/tabcontainer.js';
 import { updateNestedProperty } from '../.miscutils/objects.js';
@@ -213,49 +200,6 @@ const chatPlaceholderRevealer = Revealer({
     setup: enableClickthrough,
 });
 
-const chatAttachButton = Button({
-    className: 'txt-norm icon-material sidebar-chat-send',
-    vpack: 'end',
-    label: 'attach_file', // Material icon for a paperclip
-    setup: setupCursorHover,
-    onClicked: async () => {
-        try {
-            const filePath = await Utils.subprocess([
-                'zenity',
-                '--file-selection',
-                '--title=Choose a file to use as context',
-            ], (path) => path.trim(), (err) => {
-                console.error("File selection cancelled or failed:", err);
-                return null;
-            });
-
-            if (filePath && filePath.length > 0) {
-                const scriptPath = `${App.configDir}/ai/extract_doc_content.py`;
-                const pythonInterpreter = GLib.get_home_dir() + '/.local/state/ags/.venv/bin/python';
-                const extractedContent = await Utils.execAsync([pythonInterpreter, scriptPath, filePath]);
-                const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-                
-                fileRawContext = `Context from file [${fileName}]:\n${extractedContent}\n\n`;
-                attachedFileName = fileName;
-                AttachedFileLabel.label = `Context: ${fileName}`;
-                AttachedFileLabel.visible = true;
-                
-                // App.sendToast(`Attached ${fileName} as context.`); // Example toast, if you have a toast system
-                chatEntry.grab_focus();
-            }
-        } catch (error) {
-            console.error("Error attaching file:", error);
-            const errorMessage = error.message || "Failed to extract content from file.";
-            // App.sendToast(`Error attaching file: ${errorMessage}`); // Example toast
-            fileRawContext = '';
-            attachedFileName = '';
-            AttachedFileLabel.label = '';
-            AttachedFileLabel.visible = false;
-            chatEntry.grab_focus();
-        }
-    },
-});
-
 const textboxArea = Box({ // Entry area
     className: 'sidebar-chat-textarea',
     children: [
@@ -267,7 +211,7 @@ const textboxArea = Box({ // Entry area
             ],
         }),
         Box({ className: 'width-10' }),
-        chatAttachButton,
+        // chatAttachButton, // Removed
         chatSendButton,
     ]
 });
@@ -289,7 +233,7 @@ const AiTitle = () => Box({
             // and APIS is accessible in this scope.
             label: apiContentStack.shown.bind().as(id => APIS[id] ? APIS[id].name : ''),
         }),
-        AttachedFileLabel, // Display the attached file name here
+        // AttachedFileLabel, // Removed
     ]
 });
 
