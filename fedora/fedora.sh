@@ -16,6 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SCRIPT="$SCRIPT_DIR/install.sh"
 FONTS_SCRIPT="$SCRIPT_DIR/fonts.sh"
 MANUAL_HELPER_SCRIPT="$SCRIPT_DIR/../manual-install-helper.sh"
+OLLAMA_MCP_BRIDGE_SCRIPT="$SCRIPT_DIR/install_ollama_mcp_bridge.sh"
 
 # Ask if user wants to exit
 ask_exit() {
@@ -83,6 +84,13 @@ run_full_install() {
     echo -e "${GREEN}🎉 Full installation completed successfully! You can now reboot and select Hyprland at login.${NC}"
 }
 
+# Install Ollama MCP Bridge
+run_ollama_mcp_bridge_install() {
+    echo -e "${YELLOW}Starting Ollama MCP Bridge installation...${NC}"
+    run_script "$OLLAMA_MCP_BRIDGE_SCRIPT" "" || { echo -e "${RED}❌ Failed: $OLLAMA_MCP_BRIDGE_SCRIPT${NC}"; exit 1; }
+    echo -e "${GREEN}✅ Ollama MCP Bridge installation completed successfully!${NC}"
+}
+
 # fix themes
 fix_gtk_ownership() {
     local user=$(whoami)
@@ -104,9 +112,10 @@ while true; do
     echo "5) Install Dependencies"
     echo "6) Update config files with exclusions"
     echo "7) Install/Update Fonts"
+    echo "8) Install Ollama MCP Bridge"
     echo ""
 
-    read -rp "Enter your choice [1-7]: " choice
+    read -rp "Enter your choice [1-8]: " choice
 
     case "$choice" in
         1)
@@ -119,6 +128,10 @@ while true; do
             ;;
         3)
             run_script "$MANUAL_HELPER_SCRIPT" "" || { echo -e "${RED}❌ Failed: $MANUAL_HELPER_SCRIPT${NC}"; }
+            ask_exit
+            ;;
+        8)
+            run_ollama_mcp_bridge_install
             ask_exit
             ;;
         4)
@@ -138,7 +151,7 @@ while true; do
             ask_exit
             ;;
         *)
-            echo -e "${RED}Invalid option. Please enter a number from 1 to 6.${NC}"
+            echo -e "${RED}Invalid option. Please enter a number from 1 to 8.${NC}"
             ;;
     esac
 done
