@@ -89,23 +89,37 @@ cd dart-sass
 sudo cp -rf * /usr/local/bin/
 
 # Install Go
+echo "Installing Go (needed for mcphost)..."
 sudo dnf install golang -y
+echo "Go installation completed."
 
 # Custom tool: mcphost
-echo "Installing mcphost..."
+echo "Starting mcphost installation..."
 # Ensure GOPATH/bin is in PATH for the user running the script or handle it explicitly
 # The go install command will typically place binaries in $HOME/go/bin (if GOPATH is not set) or $GOPATH/bin
 # Run go install as the regular user, then sudo cp
+echo "Updating PATH to include Go binary directories..."
 export PATH=$PATH:$(go env GOPATH)/bin:$HOME/go/bin # Ensure go binaries are findable
+echo "PATH updated: $PATH"
+echo "Running 'go install github.com/mark3labs/mcphost@latest'..."
 go install github.com/mark3labs/mcphost@latest
+echo "'go install' command finished."
+
+echo "Checking for mcphost binary..."
 if [ -f "$(go env GOPATH)/bin/mcphost" ]; then
+    echo "mcphost found in $(go env GOPATH)/bin/mcphost. Copying to /usr/local/bin/..."
     sudo cp "$(go env GOPATH)/bin/mcphost" /usr/local/bin/
+    echo "mcphost copied to /usr/local/bin/."
 elif [ -f "$HOME/go/bin/mcphost" ]; then
+    echo "mcphost found in $HOME/go/bin/mcphost. Copying to /usr/local/bin/..."
     sudo cp "$HOME/go/bin/mcphost" /usr/local/bin/
+    echo "mcphost copied to /usr/local/bin/."
 else
-    echo "Error: mcphost binary not found after installation. Please check your Go environment."
+    echo "Error: mcphost binary not found after installation. Please check your Go environment (GOPATH, GOBIN, \$HOME/go/bin)."
     # exit 1 # Optionally exit if critical
 fi
+echo "mcphost installation process finished."
+
 
 # Build & install anyrun
 cd "$t"
