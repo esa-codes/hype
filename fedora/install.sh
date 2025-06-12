@@ -102,10 +102,10 @@ cp examples/config.ron ~/.config/anyrun/config.ron
 
 # Install ollama-mcp-bridge
 echo "Running ollama-mcp-bridge installation script..."
-if [ -f "/home/eev/hype/fedora/install_ollama_mcp_bridge.sh" ]; then
-    bash /home/eev/hype/fedora/install_ollama_mcp_bridge.sh
+if [ -f "$HOME/hype/fedora/install_ollama_mcp_bridge.sh" ]; then
+    bash "$HOME/hype/fedora/install_ollama_mcp_bridge.sh"
 else
-    echo "Warning: /home/eev/hype/fedora/install_ollama_mcp_bridge.sh not found."
+    echo "Warning: $HOME/hype/fedora/install_ollama_mcp_bridge.sh not found."
 fi
 
 rm -rf "$t"
