@@ -145,6 +145,21 @@ v sudo systemctl enable bluetooth --now
 v gsettings set org.gnome.desktop.interface font-name 'Rubik 11'
 v gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
+# Install Ollama MCP Bridge if the script exists
+OLLAMA_MCP_BRIDGE_SCRIPT_PATH="$base/arch/install_ollama_mcp_bridge.sh"
+if [ -f "$OLLAMA_MCP_BRIDGE_SCRIPT_PATH" ]; then
+    printf "\e[36m[$0]: Running ollama-mcp-bridge installation script...\e[0m\n"
+    # Ensure the script is executable
+    chmod +x "$OLLAMA_MCP_BRIDGE_SCRIPT_PATH"
+    # Execute the script
+    if v "$OLLAMA_MCP_BRIDGE_SCRIPT_PATH"; then
+        printf "\e[32m[$0]: ollama-mcp-bridge installation script completed successfully.\e[0m\n"
+    else
+        printf "\e[31m[$0]: ollama-mcp-bridge installation script failed.\e[0m\n"
+    fi
+else
+    printf "\e[33m[$0]: ollama-mcp-bridge installation script not found at %s. Skipping.\e[0m\n" "$OLLAMA_MCP_BRIDGE_SCRIPT_PATH"
+fi
 
 #####################################################################################
 printf "\e[36m[$0]: 2. Copying + Configuring\e[0m\n"
