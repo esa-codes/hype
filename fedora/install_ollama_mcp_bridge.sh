@@ -15,7 +15,8 @@ printf "\n\e[34mChecking prerequisites...\e[0m\n"
 
 # 1. Install Git, Node.js, and npm if not present
 if ! command_exists git || ! command_exists node || ! command_exists npm; then
-    printf "Git, Node.js, or npm not found. Attempting to install...\n"
+    printf "Git, Node.js, or npm not found. Attempting to install using sudo...\n"
+    printf "You may be prompted for your password.\n"
     sudo pacman -Syu --noconfirm git nodejs npm
     if [ $? -ne 0 ]; then 
         printf "\e[31mError installing Git, Node.js, or npm. Please install them manually and re-run the script.\e[0m\n"
