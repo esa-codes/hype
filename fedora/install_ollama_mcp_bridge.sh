@@ -5,6 +5,14 @@
 
 printf "\e[36m[%s]: Fedora - Ollama MCP Bridge (patruff) installation script started.\e[0m\n" "$0"
 
+# IMPORTANT: This script should NOT be run with sudo directly.
+# It will call sudo internally for specific commands (dnf, npm install -g) when needed.
+if [ "$(id -u)" -eq 0 ]; then
+  printf "\e[31mError: This script should not be run as root or with sudo directly.\e[0m\n"
+  printf "Please run it as a normal user. Sudo will be invoked for specific commands as needed.\n"
+  exit 1
+fi
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -118,36 +126,66 @@ fi
 CONFIG_FILE="$CLONE_DIR/bridge_config.json"
 printf "\n\e[34mCreating $CONFIG_FILE...\e[0m\n"
 
-# Escape paths for JSON
+# Resolve paths for JSON
 ESCAPED_WORKSPACE_DIR=$(printf '%s' "$WORKSPACE_DIR" | sed 's/[&\/]/\\&/g')
+NODE_EXEC_PATH=$(command -v node)
+if [ -z "$NODE_EXEC_PATH" ]; then
+    printf "\e[31mError: Node executable not found in PATH. Cannot create bridge_config.json correctly.\e[0m\n"
+    # Attempt to find node in common locations if 'command -v node' fails for non-interactive shells
+    if [ -x "/usr/bin/node" ]; then NODE_EXEC_PATH="/usr/bin/node"; 
+    elif [ -x "/usr/local/bin/node" ]; then NODE_EXEC_PATH="/usr/local/bin/node";
+    elif [ -x "$HOME/.nvm/versions/node/$(nvm current 2>/dev/null)/bin/node" ]; then NODE_EXEC_PATH="$HOME/.nvm/versions/node/$(nvm current)/bin/node";
+    else 
+        printf "\e[31mPlease ensure Node.js is installed and 'node' is in your PATH.\e[0m\n"; 
+        exit 1; 
+    fi
+    printf "\e[33mFound node at %s. Proceeding.\e[0m\n" "$NODE_EXEC_PATH"
+fi
+
+NPM_GLOBAL_BIN=$(npm bin -g)
+if [ -z "$NPM_GLOBAL_BIN" ]; then
+    printf "\e[31mError: Could not determine npm global bin directory (npm bin -g).\e[0m\n"
+    printf "\e[31mCannot create bridge_config.json correctly. Ensure npm is configured.\e[0m\n"
+    exit 1
+fi
+
+# Escape paths for JSON
+ESCAPED_NODE_EXEC_PATH=$(printf '%s' "$NODE_EXEC_PATH" | sed 's/[&\/]/\\&/g')
+ESCAPED_FS_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-filesystem" | sed 's/[&\/]/\\&/g')
+ESCAPED_BRAVE_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-brave-search" | sed 's/[&\/]/\\&/g')
+ESCAPED_GITHUB_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-github" | sed 's/[&\/]/\\&/g')
+ESCAPED_MEMORY_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-memory" | sed 's/[&\/]/\\&/g')
+ESCAPED_FLUX_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-flux" | sed 's/[&\/]/\\&/g')
+ESCAPED_GMAIL_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-gmail-drive" | sed 's/[&\/]/\\&/g')
+
 
 cat > "$CONFIG_FILE" << EOL
 {
   "mcpServers": {
     "filesystem": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-filesystem"],
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_FS_SERVER_PATH"],
       "allowedDirectory": "$ESCAPED_WORKSPACE_DIR"
     },
     "brave-search": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-brave-search"]
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_BRAVE_SERVER_PATH"]
     },
     "github": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-github"]
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_GITHUB_SERVER_PATH"]
     },
     "memory": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-memory"]
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_MEMORY_SERVER_PATH"]
     },
     "flux": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-flux"]
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_FLUX_SERVER_PATH"]
     },
     "gmail-drive": {
-      "command": "node",
-      "args": ["$(npm bin -g)/server-gmail-drive"]
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_GMAIL_SERVER_PATH"]
     }
   },
   "llm": {
