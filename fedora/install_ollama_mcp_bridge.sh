@@ -112,12 +112,12 @@ else
     printf "\e[33mWarning: Could not determine npm global prefix. PATH modification for global executables might be incomplete.\e[0m\n"
 fi
 # Mapping package names to expected executable names
-# This is an assumption; actual executable names are defined in each package's package.json 'bin' field.
+# Based on actual executable names found in npm global bin directory
 declare -A MCP_SERVER_EXEC_MAP
-MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-filesystem"]="server-filesystem"
-MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-brave-search"]="server-brave-search"
-MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-github"]="server-github"
-MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-memory"]="server-memory"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-filesystem"]="mcp-server-filesystem"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-brave-search"]="mcp-server-brave-search"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-github"]="mcp-server-github"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-memory"]="mcp-server-memory"
 MCP_SERVER_EXEC_MAP["@patruff/server-flux"]="server-flux"
 MCP_SERVER_EXEC_MAP["@patruff/server-gmail-drive"]="server-gmail-drive"
 
@@ -213,19 +213,20 @@ if [ -z "$NODE_EXEC_PATH" ]; then
     printf "\e[33mFound node at %s. Proceeding.\e[0m\n" "$NODE_EXEC_PATH"
 fi
 
-NPM_GLOBAL_BIN=$(npm bin -g)
-if [ -z "$NPM_GLOBAL_BIN" ]; then
-    printf "\e[31mError: Could not determine npm global bin directory (npm bin -g).\e[0m\n"
+NPM_GLOBAL_PREFIX=$(npm get prefix -g 2>/dev/null)
+if [ -z "$NPM_GLOBAL_PREFIX" ]; then
+    printf "\e[31mError: Could not determine npm global prefix directory.\e[0m\n"
     printf "\e[31mCannot create bridge_config.json correctly. Ensure npm is configured.\e[0m\n"
     exit 1
 fi
+NPM_GLOBAL_BIN="$NPM_GLOBAL_PREFIX/bin"
 
 # Escape paths for JSON
 ESCAPED_NODE_EXEC_PATH=$(printf '%s' "$NODE_EXEC_PATH" | sed 's/[&\/]/\\&/g')
-ESCAPED_FS_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-filesystem" | sed 's/[&\/]/\\&/g')
-ESCAPED_BRAVE_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-brave-search" | sed 's/[&\/]/\\&/g')
-ESCAPED_GITHUB_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-github" | sed 's/[&\/]/\\&/g')
-ESCAPED_MEMORY_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-memory" | sed 's/[&\/]/\\&/g')
+ESCAPED_FS_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-filesystem" | sed 's/[&\/]/\\&/g')
+ESCAPED_BRAVE_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-brave-search" | sed 's/[&\/]/\\&/g')
+ESCAPED_GITHUB_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-github" | sed 's/[&\/]/\\&/g')
+ESCAPED_MEMORY_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-memory" | sed 's/[&\/]/\\&/g')
 ESCAPED_FLUX_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-flux" | sed 's/[&\/]/\\&/g')
 ESCAPED_GMAIL_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-gmail-drive" | sed 's/[&\/]/\\&/g')
 
