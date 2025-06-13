@@ -166,13 +166,77 @@ fi
 
 # --- Post-installation --- 
 printf "\n\e[34mPost-installation steps:\e[0m\n"
+printf "\e[33mIMPORTANT: Configure API keys and OAuth for full functionality.\e[0m\n"
+printf "The bridge may have limited capabilities without these.\n\n"
 
-printf "\e[33mIMPORTANT: Configure API keys and OAuth:\e[0m\n"
-printf "1. Set \e[35mBRAVE_API_KEY\e[0m environment variable for Brave Search.\n"
-printf "2. Set \e[35mGITHUB_PERSONAL_ACCESS_TOKEN\e[0m environment variable for GitHub.\n"
-printf "3. Set \e[35mREPLICATE_API_TOKEN\e[0m environment variable for Flux image generation.\n"
-printf "4. Run Gmail/Drive MCP authentication: \e[36mnode $(npm bin -g)/server-gmail-drive auth\e[0m\n"
-printf "   (Adjust path if needed, e.g., \e[36mnode path/to/your/global/node_modules/@patruff/server-gmail-drive/dist/index.js auth\e[0m)\n"
+api_keys_to_configure=(
+    "BRAVE_API_KEY:Brave Search API Key"
+    "GITHUB_PERSONAL_ACCESS_TOKEN:GitHub Personal Access Token"
+    "REPLICATE_API_TOKEN:Replicate API Token (for Flux image generation)"
+)
+
+for item in "${api_keys_to_configure[@]}"; do
+    IFS=":" read -r env_var_name description <<< "$item"
+    printf "Configuration for \e[35m%s\e[0m (%s):\n" "$env_var_name" "$description"
+    current_env_val=$(env | grep "^${env_var_name}=" | cut -d= -f2-)
+    if [ -n "$current_env_val" ]; then
+        printf "This variable appears to be set in the current environment: \e[36m%s\e[0m\n" "$current_env_val"
+        read -r -p "Do you want to skip providing a new value and assume it's correctly set up externally? (yes/no) [yes]: " skip_current_env
+        if [[ "$skip_current_env" != "no" ]]; then
+            printf "\e[32mSkipping. Assuming %s is configured externally.\e[0m\n\n" "$env_var_name"
+            continue
+        fi
+    fi 
+
+    read -r -p "Do you want to provide the value for %s now? (yes/no) [no]: " set_now_reply
+    if [[ "$set_now_reply" == "yes" ]]; then
+        read -r -p "Enter your %s value: " "$env_var_name" api_key_value
+        if [ -n "$api_key_value" ]; then
+            printf "To make \e[35m%s\e[0m permanent, add the following to your shell's startup file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile):
+" "$env_var_name"
+            printf "  \e[36mexport %s=\"%s\"\e[0m
+" "$env_var_name" "$api_key_value"
+            printf "You'll need to source the file (e.g., 'source ~/.bashrc') or open a new terminal for it to take effect.\n\n"
+        else
+            printf "\e[33mNo value entered. You can set \e[35m%s\e[0m manually later.\e[0m\n\n" "$env_var_name"
+        fi
+    else
+        printf "\e[33mSkipped. You can set \e[35m%s\e[0m manually later by exporting it as an environment variable.\e[0m\n\n" "$env_var_name"
+    fi
+done
+
+# Gmail/Drive Authentication
+printf "\nGmail/Drive MCP Authentication:\n"
+NPM_GLOBAL_BIN_PATH=$(npm bin -g 2>/dev/null)
+# The executable name for @patruff/server-gmail-drive is typically 'server-gmail-drive'
+# as defined in its package.json 'bin' field.
+GMAIL_DRIVE_SERVER_EXEC="server-gmail-drive"
+
+if [ -n "$NPM_GLOBAL_BIN_PATH" ] && [ -x "${NPM_GLOBAL_BIN_PATH}/${GMAIL_DRIVE_SERVER_EXEC}" ]; then
+    GMAIL_DRIVE_AUTH_CMD="node \"${NPM_GLOBAL_BIN_PATH}/${GMAIL_DRIVE_SERVER_EXEC}\" auth"
+    printf "To authenticate Gmail/Drive, run the following command in your terminal after this script finishes:
+"
+    printf "  \e[36m%s\e[0m\n" "$GMAIL_DRIVE_AUTH_CMD"
+    read -r -p "Do you want to attempt to run this authentication command now? (Requires browser interaction) (yes/no) [no]: " run_gmail_auth_now
+    if [[ "$run_gmail_auth_now" == "yes" ]]; then
+        printf "Attempting to run: %s\n" "$GMAIL_DRIVE_AUTH_CMD"
+        eval "$GMAIL_DRIVE_AUTH_CMD"
+        printf "Gmail/Drive authentication process attempted. Check terminal output for status or errors.\n"
+    fi
+else
+    # Fallback if detection fails
+    printf "Could not automatically determine the path for Gmail/Drive server authentication command.
+"
+    printf "You may need to find the 'server-gmail-drive' script installed globally by npm.
+"
+    printf "Typically, you can run it with a command like: \e[36mnode path/to/your/global/node_modules/@patruff/server-gmail-drive/dist/index.js auth\e[0m
+"
+    printf "Or, if 'server-gmail-drive' (the executable) is in your PATH: \e[36mnode server-gmail-drive auth\e[0m
+"
+fi
+printf "This step requires interaction in your browser to grant access if run.
+
+"
 
 # --- Start the bridge automatically ---
 printf "\n\e[34mAttempting to start Ollama-MCP-Bridge in the background...\e[0m\n"
