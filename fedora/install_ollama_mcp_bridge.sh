@@ -28,16 +28,21 @@ LLM_MODEL="qwen3:0.5b"
 # --- Prerequisites ---
 printf "\n\e[34mChecking prerequisites...\e[0m\n"
 
-# 1. Install Git, Node.js, and npm if not present
-if ! command_exists git || ! command_exists node || ! command_exists npm; then
-    printf "Git, Node.js, or npm not found. Attempting to install using sudo...\n"
-    printf "You may be prompted for your password.\n"
-    sudo dnf install -y git nodejs npm # Fedora uses dnf
-    if [ $? -ne 0 ]; then 
-        printf "\e[31mError installing Git, Node.js, or npm. Please install them manually and re-run the script.\e[0m\n"
-        exit 1
-    fi
-    printf "\e[32mGit, Node.js, and npm installed successfully.\e[0m\n"
+# 1. Check for Git, Node.js, and npm
+missing_prereqs=()
+if ! command_exists git; then missing_prereqs+=("git"); fi
+if ! command_exists node; then missing_prereqs+=("Node.js (node executable)"); fi
+if ! command_exists npm; then missing_prereqs+=("npm"); fi
+
+if [ ${#missing_prereqs[@]} -ne 0 ]; then
+    printf "\e[31mError: The following prerequisites are not found:\e[0m\n"
+    for item in "${missing_prereqs[@]}"; do
+        printf "  - %s\n" "$item"
+    done
+    printf "Please install them manually. For Fedora, you can typically use:\n"
+    printf "  \e[36msudo dnf install -y git nodejs npm\e[0m\n"
+    printf "After installation, please re-run this script.\n"
+    exit 1
 else
     printf "\e[32mGit, Node.js, and npm are already installed.\e[0m\n"
 fi
@@ -92,9 +97,19 @@ if [ $? -ne 0 ]; then
 fi
 printf "\e[32mBridge npm dependencies installed successfully.\e[0m\n"
 
-# 5. Install MCP Servers globally
-printf "\n\e[34mInstalling MCP Servers globally using npm...\e[0m\n"
-MCP_SERVERS=(
+# 5. Check for MCP Server executables
+printf "\n\e[34mChecking for MCP Server executables...\e[0m\n"
+# Mapping package names to expected executable names
+# This is an assumption; actual executable names are defined in each package's package.json 'bin' field.
+declare -A MCP_SERVER_EXEC_MAP
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-filesystem"]="server-filesystem"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-brave-search"]="server-brave-search"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-github"]="server-github"
+MCP_SERVER_EXEC_MAP["@modelcontextprotocol/server-memory"]="server-memory"
+MCP_SERVER_EXEC_MAP["@patruff/server-flux"]="server-flux"
+MCP_SERVER_EXEC_MAP["@patruff/server-gmail-drive"]="server-gmail-drive"
+
+MCP_SERVER_PACKAGES=(
     "@modelcontextprotocol/server-filesystem"
     "@modelcontextprotocol/server-brave-search"
     "@modelcontextprotocol/server-github"
@@ -103,15 +118,34 @@ MCP_SERVERS=(
     "@patruff/server-gmail-drive"
 )
 
-for server_pkg in "${MCP_SERVERS[@]}"; do
-    printf "Installing $server_pkg...\n"
-    sudo npm install -g "$server_pkg"
-    if [ $? -ne 0 ]; then
-        printf "\e[33mWarning: Failed to install $server_pkg. Please install it manually and ensure it's in your PATH.\e[0m\n"
+missing_mcp_servers=()
+for pkg_name in "${MCP_SERVER_PACKAGES[@]}"; do
+    exec_name=${MCP_SERVER_EXEC_MAP[$pkg_name]}
+    if ! command_exists "$exec_name"; then
+        missing_mcp_servers+=("$pkg_name (expected executable: $exec_name)")
     else
-        printf "\e[32m$server_pkg installed successfully.\e[0m\n"
+        printf "\e[32mFound MCP Server: %s (executable: %s)\e[0m\n" "$pkg_name" "$exec_name"
     fi
 done
+
+if [ ${#missing_mcp_servers[@]} -ne 0 ]; then
+    printf "\n\e[31mError: The following MCP server executables were not found in your PATH:\e[0m\n"
+    for item in "${missing_mcp_servers[@]}"; do
+        printf "  - %s\n" "$item"
+    done
+    printf "Please install them globally using npm. For each missing package, run (you might need sudo):
+"
+    printf "  \e[36mnpm install -g <package_name>\e[0m
+"
+    printf "For example, for '@modelcontextprotocol/server-filesystem', run:
+"
+    printf "  \e[36mnpm install -g @modelcontextprotocol/server-filesystem\e[0m
+"
+    printf "After installing all missing packages, please re-run this script.\n"
+    exit 1
+else
+    printf "\e[32mAll required MCP server executables are installed and found in PATH.\e[0m\n"
+fi
 
 # 6. Create the workspace directory
 printf "\nCreating workspace directory at $WORKSPACE_DIR...\n"
