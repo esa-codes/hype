@@ -99,6 +99,13 @@ printf "\e[32mBridge npm dependencies installed successfully.\e[0m\n"
 
 # 5. Check for MCP Server executables
 printf "\n\e[34mChecking for MCP Server executables...\e[0m\n"
+
+# Attempt to update PATH to include npm global bin directory
+NPM_GLOBAL_BIN_PATH_DETECT=$(npm bin -g 2>/dev/null)
+if [ -n "$NPM_GLOBAL_BIN_PATH_DETECT" ] && [[ ":$PATH:" != *":$NPM_GLOBAL_BIN_PATH_DETECT:"* ]]; then
+    printf "Adding %s to PATH for this script execution\n" "$NPM_GLOBAL_BIN_PATH_DETECT"
+    export PATH="$NPM_GLOBAL_BIN_PATH_DETECT:$PATH"
+fi
 # Mapping package names to expected executable names
 # This is an assumption; actual executable names are defined in each package's package.json 'bin' field.
 declare -A MCP_SERVER_EXEC_MAP
@@ -128,7 +135,13 @@ for pkg_name in "${MCP_SERVER_PACKAGES[@]}"; do
         printf "Running: sudo npm install -g %s\n" "$pkg_name"
         if sudo npm install -g "$pkg_name"; then
             printf "\e[32mSuccessfully installed %s.\e[0m\n" "$pkg_name"
-            # Verify again if the executable is now in PATH
+            # Re-check npm global bin path and update PATH if necessary, then verify executable
+            NPM_GLOBAL_BIN_PATH_POST_INSTALL=$(npm bin -g 2>/dev/null)
+            if [ -n "$NPM_GLOBAL_BIN_PATH_POST_INSTALL" ] && [[ ":$PATH:" != *":$NPM_GLOBAL_BIN_PATH_POST_INSTALL:"* ]]; then
+                printf "Re-adding %s to PATH post-install for this script execution\n" "$NPM_GLOBAL_BIN_PATH_POST_INSTALL"
+                export PATH="$NPM_GLOBAL_BIN_PATH_POST_INSTALL:$PATH"
+            fi
+
             if ! command_exists "$exec_name"; then
                 printf "\e[31mError: %s installed, but executable '%s' still not found in PATH.\e[0m\n" "$pkg_name" "$exec_name"
                 printf "This might be a PATH issue or the package's 'bin' definition is different.\n"
