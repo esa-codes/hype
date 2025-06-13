@@ -343,41 +343,35 @@ api_keys_to_configure=(
 
 for item in "${api_keys_to_configure[@]}"; do
     IFS=":" read -r env_var_name description <<< "$item"
-    printf "Configuration for \e[35m%s\e[0m (%s):\n" "$env_var_name" "$description"
+    printf "\n\e[35m%s\e[0m (%s):\n" "$env_var_name" "$description"
+    
+    # Check if already set in environment
     current_env_val=$(env | grep "^${env_var_name}=" | cut -d= -f2-)
     if [ -n "$current_env_val" ]; then
-        printf "This variable appears to be set in the current environment: \e[36m%s\e[0m\n" "$current_env_val"
-        read -r -p "Do you want to skip providing a new value and assume it's correctly set up externally? (yes/no) [yes]: " skip_current_env
-        if [[ "$skip_current_env" != "no" ]]; then
-            printf "\e[32mSkipping. Assuming %s is configured externally.\e[0m\n\n" "$env_var_name"
+        printf "Already set in environment: \e[36m%s\e[0m\n" "$current_env_val"
+        read -r -p "Press Enter to keep current value, or enter new value (empty to disable): " api_key_value
+        if [ -z "$api_key_value" ]; then
+            # Keep existing value
+            eval "HAS_${env_var_name}=true"
+            printf "\e[32mKeeping existing %s value.\e[0m\n" "$env_var_name"
             continue
         fi
-    fi 
-
-    read -r -p "Do you want to provide the value for %s now? (yes/no) [no]: " set_now_reply
-    if [[ "$set_now_reply" == "yes" ]]; then
-        read -r -p "Enter your %s value (leave empty to skip): " api_key_value
-        if [ -n "$api_key_value" ]; then
-            # Save the API key to environment
-            export "$env_var_name"="$api_key_value"
-            printf "\e[32m%s has been set for this session.\e[0m\n" "$env_var_name"
-            printf "To make \e[35m%s\e[0m permanent, add the following to your shell's startup file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile):\n" "$env_var_name"
-            printf "  \e[36mexport %s=\"%s\"\e[0m\n" "$env_var_name" "$api_key_value"
-            printf "You'll need to source the file (e.g., 'source ~/.bashrc') or open a new terminal for it to take effect.\n\n"
-            
-            # Mark this API key as available for bridge config
-            eval "HAS_${env_var_name}=true"
-        else
-            printf "\e[33mEmpty value entered. Skipping %s - related services will be disabled.\e[0m\n\n" "$env_var_name"
-            eval "HAS_${env_var_name}=false"
-        fi
     else
-        printf "\e[33mSkipped. You can set \e[35m%s\e[0m manually later by exporting it as an environment variable.\e[0m\n\n" "$env_var_name"
-        # Check if it's already set in environment
-        if [ -n "${!env_var_name}" ]; then
-            eval "HAS_${env_var_name}=true"
-        else
-            eval "HAS_${env_var_name}=false"
+        read -r -p "Enter your API key (leave empty to skip): " api_key_value
+    fi
+    
+    if [ -n "$api_key_value" ]; then
+        # Save the API key to environment
+        export "$env_var_name"="$api_key_value"
+        printf "\e[32m%s has been set for this session.\e[0m\n" "$env_var_name"
+        printf "To make it permanent, add this to your shell startup file:\n"
+        printf "  \e[36mexport %s=\"%s\"\e[0m\n" "$env_var_name" "$api_key_value"
+        
+        # Mark this API key as available for bridge config
+        eval "HAS_${env_var_name}=true"
+    else
+        printf "\e[33mSkipped %s - related services will be disabled.\e[0m\n" "$env_var_name"
+        eval "HAS_${env_var_name}=false"
         fi
     fi
 done
