@@ -356,7 +356,7 @@ for item in "${api_keys_to_configure[@]}"; do
 
     read -r -p "Do you want to provide the value for %s now? (yes/no) [no]: " set_now_reply
     if [[ "$set_now_reply" == "yes" ]]; then
-        read -r -p "Enter your %s value (leave empty to skip): " "$env_var_name" api_key_value
+        read -r -p "Enter your %s value (leave empty to skip): " api_key_value
         if [ -n "$api_key_value" ]; then
             # Save the API key to environment
             export "$env_var_name"="$api_key_value"
