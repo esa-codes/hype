@@ -22,7 +22,7 @@ command_exists() {
 INSTALL_PARENT_DIR="$HOME/hype" # Parent directory for projects
 REPO_NAME="ollama-mcp-bridge" # Cloned repository name
 CLONE_DIR="$INSTALL_PARENT_DIR/$REPO_NAME"
-WORKSPACE_DIR="$INSTALL_PARENT_DIR/workspace" # General workspace directory
+WORKSPACE_DIR="/tmp/mcp-workspace" # General workspace directory
 LLM_MODEL="qwen3:0.5b"
 
 # --- Prerequisites ---
@@ -236,8 +236,7 @@ cat > "$CONFIG_FILE" << EOL
   "mcpServers": {
     "filesystem": {
       "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_FS_SERVER_PATH"],
-      "allowedDirectory": "$ESCAPED_WORKSPACE_DIR"
+      "args": ["$ESCAPED_FILESYSTEM_SERVER_PATH", "$ESCAPED_WORKSPACE_DIR"]
     },
     "brave-search": {
       "command": "$ESCAPED_NODE_EXEC_PATH",
