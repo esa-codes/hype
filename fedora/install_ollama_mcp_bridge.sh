@@ -231,6 +231,7 @@ ESCAPED_FLUX_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-flux" | sed 's/[&
 ESCAPED_GMAIL_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-gmail-drive" | sed 's/[&\/]/\\&/g')
 
 
+# Generate bridge configuration with conditional API key services
 cat > "$CONFIG_FILE" << EOL
 {
   "mcpServers": {
@@ -238,22 +239,53 @@ cat > "$CONFIG_FILE" << EOL
       "command": "$ESCAPED_NODE_EXEC_PATH",
       "args": ["$ESCAPED_FILESYSTEM_SERVER_PATH", "$ESCAPED_WORKSPACE_DIR"]
     },
-    "brave-search": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_BRAVE_SERVER_PATH"]
-    },
-    "github": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_GITHUB_SERVER_PATH"]
-    },
     "memory": {
       "command": "$ESCAPED_NODE_EXEC_PATH",
       "args": ["$ESCAPED_MEMORY_SERVER_PATH"]
-    },
+    }EOL
+
+# Add brave-search if API key is available
+if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
+    cat >> "$CONFIG_FILE" << EOL
+,
+    "brave-search": {
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_BRAVE_SERVER_PATH"],
+      "env": {
+        "BRAVE_API_KEY": "\${BRAVE_API_KEY}"
+      }
+    }EOL
+fi
+
+# Add github if API key is available
+if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
+    cat >> "$CONFIG_FILE" << EOL
+,
+    "github": {
+      "command": "$ESCAPED_NODE_EXEC_PATH",
+      "args": ["$ESCAPED_GITHUB_SERVER_PATH"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }EOL
+fi
+
+# Add flux if API key is available
+if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
+    cat >> "$CONFIG_FILE" << EOL
+,
     "flux": {
       "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_FLUX_SERVER_PATH"]
-    },
+      "args": ["$ESCAPED_FLUX_SERVER_PATH"],
+      "env": {
+        "REPLICATE_API_TOKEN": "\${REPLICATE_API_TOKEN}"
+      }
+    }EOL
+fi
+
+# Always add gmail-drive (doesn't require API key for basic functionality)
+cat >> "$CONFIG_FILE" << EOL
+,
     "gmail-drive": {
       "command": "$ESCAPED_NODE_EXEC_PATH",
       "args": ["$ESCAPED_GMAIL_SERVER_PATH"]
@@ -269,6 +301,31 @@ EOL
 if [ -f "$CONFIG_FILE" ]; then
     printf "\e[32m$CONFIG_FILE created successfully.\e[0m\n"
     printf "\e[33mPlease review $CONFIG_FILE and update server paths in 'args' if 'npm bin -g' does not point to the correct executables.\e[0m\n"
+    
+    # Show which services are enabled/disabled
+    printf "\n\e[34mMCP Services Configuration Summary:\e[0m\n"
+    printf "\e[32m✓ Filesystem server: Enabled\e[0m\n"
+    printf "\e[32m✓ Memory server: Enabled\e[0m\n"
+    printf "\e[32m✓ Gmail-Drive server: Enabled\e[0m\n"
+    
+    if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
+        printf "\e[32m✓ Brave Search: Enabled (API key provided)\e[0m\n"
+    else
+        printf "\e[33m✗ Brave Search: Disabled (no API key)\e[0m\n"
+    fi
+    
+    if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
+        printf "\e[32m✓ GitHub: Enabled (API key provided)\e[0m\n"
+    else
+        printf "\e[33m✗ GitHub: Disabled (no API key)\e[0m\n"
+    fi
+    
+    if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
+        printf "\e[32m✓ Flux (Image Generation): Enabled (API key provided)\e[0m\n"
+    else
+        printf "\e[33m✗ Flux (Image Generation): Disabled (no API key)\e[0m\n"
+    fi
+    printf "\n"
 else
     printf "\e[31mError: Failed to create $CONFIG_FILE. Please create it manually.\e[0m\n"
 fi
@@ -299,18 +356,29 @@ for item in "${api_keys_to_configure[@]}"; do
 
     read -r -p "Do you want to provide the value for %s now? (yes/no) [no]: " set_now_reply
     if [[ "$set_now_reply" == "yes" ]]; then
-        read -r -p "Enter your %s value: " "$env_var_name" api_key_value
+        read -r -p "Enter your %s value (leave empty to skip): " "$env_var_name" api_key_value
         if [ -n "$api_key_value" ]; then
-            printf "To make \e[35m%s\e[0m permanent, add the following to your shell's startup file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile):
-" "$env_var_name"
-            printf "  \e[36mexport %s=\"%s\"\e[0m
-" "$env_var_name" "$api_key_value"
+            # Save the API key to environment
+            export "$env_var_name"="$api_key_value"
+            printf "\e[32m%s has been set for this session.\e[0m\n" "$env_var_name"
+            printf "To make \e[35m%s\e[0m permanent, add the following to your shell's startup file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile):\n" "$env_var_name"
+            printf "  \e[36mexport %s=\"%s\"\e[0m\n" "$env_var_name" "$api_key_value"
             printf "You'll need to source the file (e.g., 'source ~/.bashrc') or open a new terminal for it to take effect.\n\n"
+            
+            # Mark this API key as available for bridge config
+            eval "HAS_${env_var_name}=true"
         else
-            printf "\e[33mNo value entered. You can set \e[35m%s\e[0m manually later.\e[0m\n\n" "$env_var_name"
+            printf "\e[33mEmpty value entered. Skipping %s - related services will be disabled.\e[0m\n\n" "$env_var_name"
+            eval "HAS_${env_var_name}=false"
         fi
     else
         printf "\e[33mSkipped. You can set \e[35m%s\e[0m manually later by exporting it as an environment variable.\e[0m\n\n" "$env_var_name"
+        # Check if it's already set in environment
+        if [ -n "${!env_var_name}" ]; then
+            eval "HAS_${env_var_name}=true"
+        else
+            eval "HAS_${env_var_name}=false"
+        fi
     fi
 done
 
