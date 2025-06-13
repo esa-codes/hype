@@ -118,33 +118,47 @@ MCP_SERVER_PACKAGES=(
     "@patruff/server-gmail-drive"
 )
 
-missing_mcp_servers=()
+installation_failed_packages=()
+all_servers_found_or_installed=true
+
 for pkg_name in "${MCP_SERVER_PACKAGES[@]}"; do
     exec_name=${MCP_SERVER_EXEC_MAP[$pkg_name]}
     if ! command_exists "$exec_name"; then
-        missing_mcp_servers+=("$pkg_name (expected executable: $exec_name)")
+        printf "\e[33mMCP Server %s (executable: %s) not found. Attempting to install...\e[0m\n" "$pkg_name" "$exec_name"
+        printf "Running: sudo npm install -g %s\n" "$pkg_name"
+        if sudo npm install -g "$pkg_name"; then
+            printf "\e[32mSuccessfully installed %s.\e[0m\n" "$pkg_name"
+            # Verify again if the executable is now in PATH
+            if ! command_exists "$exec_name"; then
+                printf "\e[31mError: %s installed, but executable '%s' still not found in PATH.\e[0m\n" "$pkg_name" "$exec_name"
+                printf "This might be a PATH issue or the package's 'bin' definition is different.\n"
+                printf "Please check your PATH and the package installation.\n"
+                installation_failed_packages+=("$pkg_name (executable '$exec_name' not found post-install)")
+                all_servers_found_or_installed=false
+            else
+                 printf "\e[32mExecutable '%s' for %s is now available.\e[0m\n" "$exec_name" "$pkg_name"
+            fi
+        else
+            printf "\e[31mError: Failed to install %s using sudo npm install -g.\e[0m\n" "$pkg_name"
+            printf "Please try installing it manually: sudo npm install -g %s\n" "$pkg_name"
+            installation_failed_packages+=("$pkg_name (install command failed)")
+            all_servers_found_or_installed=false
+        fi
     else
         printf "\e[32mFound MCP Server: %s (executable: %s)\e[0m\n" "$pkg_name" "$exec_name"
     fi
 done
 
-if [ ${#missing_mcp_servers[@]} -ne 0 ]; then
-    printf "\n\e[31mError: The following MCP server executables were not found in your PATH:\e[0m\n"
-    for item in "${missing_mcp_servers[@]}"; do
+if [ "$all_servers_found_or_installed" = true ]; then
+    printf "\e[32mAll required MCP server executables are installed and found in PATH.\e[0m\n"
+else
+    printf "\n\e[31mError: Some MCP server packages could not be installed or their executables were not found after installation:\e[0m\n"
+    for item in "${installation_failed_packages[@]}"; do
         printf "  - %s\n" "$item"
     done
-    printf "Please install them globally using npm. For each missing package, run (you might need sudo):
-"
-    printf "  \e[36mnpm install -g <package_name>\e[0m
-"
-    printf "For example, for '@modelcontextprotocol/server-filesystem', run:
-"
-    printf "  \e[36mnpm install -g @modelcontextprotocol/server-filesystem\e[0m
-"
-    printf "After installing all missing packages, please re-run this script.\n"
+    printf "Please review the errors above and try to resolve them manually.\n"
+    printf "You may need to check your PATH or run 'sudo npm install -g <package_name>' for the failed packages.\n"
     exit 1
-else
-    printf "\e[32mAll required MCP server executables are installed and found in PATH.\e[0m\n"
 fi
 
 # 6. Create the workspace directory
