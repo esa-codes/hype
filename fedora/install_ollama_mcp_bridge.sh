@@ -174,12 +174,51 @@ printf "3. Set \e[35mREPLICATE_API_TOKEN\e[0m environment variable for Flux imag
 printf "4. Run Gmail/Drive MCP authentication: \e[36mnode $(npm bin -g)/server-gmail-drive auth\e[0m\n"
 printf "   (Adjust path if needed, e.g., \e[36mnode path/to/your/global/node_modules/@patruff/server-gmail-drive/dist/index.js auth\e[0m)\n"
 
-printf "\n\e[34mTo start the Ollama-MCP-Bridge:\e[0m\n"
-printf "1. Navigate to the installation directory: \e[36mcd $CLONE_DIR\e[0m\n"
-printf "2. Run: \e[32mnpm run start\e[0m\n"
-printf "3. Interact with the bridge via the command line interface that appears.\n"
+# --- Start the bridge automatically ---
+printf "\n\e[34mAttempting to start Ollama-MCP-Bridge in the background...\e[0m\n"
+
+if [ -d "$CLONE_DIR" ]; then
+    # Store current directory to return if needed, though this is the end of the script.
+    current_dir_before_start=$(pwd)
+    cd "$CLONE_DIR" || {
+        printf "\e[31mError: Failed to cd into %s to start the bridge.\e[0m\n" "$CLONE_DIR"
+        printf "You may need to start it manually: \e[36mcd %s && npm run start\e[0m\n" "$CLONE_DIR"
+    }
+
+    # Proceed only if cd was successful
+    if [ "$(pwd)" = "$CLONE_DIR" ]; then
+        LOG_FILE="$CLONE_DIR/ollama_mcp_bridge_auto_start.log"
+        printf "Starting 'npm run start' in the background. Output will be logged to: \e[36m%s\e[0m\n" "$LOG_FILE"
+        
+        nohup npm run start > "$LOG_FILE" 2>&1 &
+        NOHUP_PID=$!
+
+        printf "Waiting a few seconds for the bridge to initialize...\n"
+        sleep 5 
+
+        if ps -p $NOHUP_PID > /dev/null; then
+            printf "\e[32mOllama-MCP-Bridge appears to have started successfully in the background (PID: %s).\e[0m\n" "$NOHUP_PID"
+            printf "You can view the logs with: \e[36mtail -f %s\e[0m\n" "$LOG_FILE"
+            printf "To stop this instance of the bridge, you can use: \e[36mkill %s\e[0m\n" "$NOHUP_PID"
+            printf "Alternatively, find the process with 'pgrep -f "npm run start.*ollama-mcp-bridge"' or similar and kill it.\n"
+        else
+            printf "\e[31mFailed to start Ollama-MCP-Bridge in the background, or it exited quickly.\e[0m\n"
+            printf "Please check the log file for errors: \e[36m%s\e[0m\n" "$LOG_FILE"
+            printf "You may need to start it manually: \e[36mcd %s && npm run start\e[0m\n" "$CLONE_DIR"
+        fi
+        
+        # Optionally cd back if this wasn't the end of the script
+        # cd "$current_dir_before_start" || printf "\e[33mWarning: could not cd back to %s\e[0m\n" "$current_dir_before_start"
+    else
+        # This handles the case where cd failed and the inner error message was printed.
+        printf "\e[31mError: Not in %s. Cannot start the bridge automatically.\e[0m\n" "$CLONE_DIR"
+        printf "You may need to start it manually: \e[36mcd %s && npm run start\e[0m\n" "$CLONE_DIR"
+    fi
+else
+    printf "\e[31mInstallation directory %s not found. Cannot start the bridge automatically.\e[0m\n" "$CLONE_DIR"
+fi
 
 printf "\n\e[32m[%s]: Fedora - Ollama MCP Bridge (patruff) installation script finished.\e[0m\n" "$0"
-printf "\e[33mPlease complete API key configuration and OAuth setup as instructed above.\e[0m\n"
+printf "\e[33mPlease complete API key configuration and OAuth setup as instructed above if you haven't already.\e[0m\n"
 
 exit 0
