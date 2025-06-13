@@ -372,7 +372,6 @@ for item in "${api_keys_to_configure[@]}"; do
     else
         printf "\e[33mSkipped %s - related services will be disabled.\e[0m\n" "$env_var_name"
         eval "HAS_${env_var_name}=false"
-        fi
     fi
 done
 
