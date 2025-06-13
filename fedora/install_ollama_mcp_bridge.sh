@@ -49,7 +49,7 @@ fi
 # --- Installation Steps ---
 printf "\n\e[34mStarting Ollama-MCP-Bridge-WebUI installation...\e[0m\n"
 
-INSTALL_PARENT_DIR="/home/eev/hype" # Parent directory for the clone
+INSTALL_PARENT_DIR="$HOME/hype" # Parent directory for the clone
 REPO_NAME="Ollama-MCP-Bridge-WebUI"
 CLONE_DIR="$INSTALL_PARENT_DIR/$REPO_NAME"
 WORKSPACE_DIR="$INSTALL_PARENT_DIR/workspace" # As per ../workspace relative to the repo
