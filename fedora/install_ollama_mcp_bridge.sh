@@ -23,7 +23,7 @@ INSTALL_PARENT_DIR="$HOME/hype" # Parent directory for projects
 REPO_NAME="ollama-mcp-bridge" # Cloned repository name
 CLONE_DIR="$INSTALL_PARENT_DIR/$REPO_NAME"
 WORKSPACE_DIR="$HOME/bridgeworkspace" # General workspace directory
-LLM_MODEL="qwen3:0.5b"
+LLM_MODEL="qwen3:0.6b"
 
 # --- Prerequisites ---
 printf "\n\e[34mChecking prerequisites...\e[0m\n"
