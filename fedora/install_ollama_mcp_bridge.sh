@@ -358,24 +358,20 @@ WORKSPACE_DIR_US=$(echo "$WORKSPACE_DIR" | sed 's/ /_/g')
 
 # Generate bridge configuration with conditional API key services
 # Create the base configuration
-cat > "$CONFIG_FILE" << 'EOF'
+cat > "$CONFIG_FILE" << EOF
 {
   "mcpServers": {
     "filesystem": {
-      "command": "NODE_EXEC_PATH_PLACEHOLDER",
-      "args": ["FS_SERVER_PATH_PLACEHOLDER", "WORKSPACE_DIR_PLACEHOLDER"]
+      "command": "/usr/local/bin/mcp-server-filesystem",
+      "args": ["$WORKSPACE_DIR"]
     },
     "memory": {
-      "command": "NODE_EXEC_PATH_PLACEHOLDER",
-      "args": ["MEMORY_SERVER_PATH_PLACEHOLDER"]
-    },
-    "gmail-drive": {
-      "command": "NODE_EXEC_PATH_PLACEHOLDER",
-      "args": ["GMAIL_SERVER_PATH_PLACEHOLDER"]
+      "command": "/usr/local/bin/mcp-server-memory",
+      "args": []
     }ADDITIONAL_SERVERS_PLACEHOLDER
   },
   "llm": {
-    "model": "LLM_MODEL_PLACEHOLDER",
+    "model": "$LLM_MODEL",
     "baseUrl": "http://localhost:11434"
   }
 }
@@ -386,8 +382,8 @@ ADDITIONAL_SERVERS=""
 if [[ "${HAS_BRAVE_API_KEY}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"brave-search\": {
-      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN_US/mcp-server-brave-search\"],
+      \"command\": \"/usr/local/bin/mcp-server-brave-search\",
+      \"args\": [],
       \"env\": {
         \"BRAVE_API_KEY\": \"\${BRAVE_API_KEY}\"
       }
@@ -397,8 +393,8 @@ fi
 if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"github\": {
-      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN_US/mcp-server-github\"],
+      \"command\": \"/usr/local/bin/mcp-server-github\",
+      \"args\": [],
       \"env\": {
         \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"\${GITHUB_PERSONAL_ACCESS_TOKEN}\"
       }
@@ -408,8 +404,8 @@ fi
 if [[ "${HAS_REPLICATE_API_TOKEN}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"flux\": {
-      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN_US/server-flux\"],
+      \"command\": \"/usr/local/bin/mcp-server-flux\",
+      \"args\": [],
       \"env\": {
         \"REPLICATE_API_TOKEN\": \"\${REPLICATE_API_TOKEN}\"
       }
