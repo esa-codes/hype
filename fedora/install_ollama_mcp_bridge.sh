@@ -380,34 +380,37 @@ EOF
 # Build additional servers section based on HAS_ variables set during API key input
 ADDITIONAL_SERVERS=""
 if [[ "${HAS_BRAVE_API_KEY}" == "true" ]]; then
+    ESCAPED_BRAVE_API_KEY=$(echo "${BRAVE_API_KEY}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/&/\\&/g' -e 's/|/\\|/g' -e ':a;N;$!ba;s/\n/\\n/g')
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"brave-search\": {
       \"command\": \"/usr/local/bin/mcp-server-brave-search\",
       \"args\": [],
       \"env\": {
-        \"BRAVE_API_KEY\": \"\${BRAVE_API_KEY}\"
+        \"BRAVE_API_KEY\": \"${ESCAPED_BRAVE_API_KEY}\"
       }
     }"
 fi
 
 if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN}" == "true" ]]; then
+    ESCAPED_GITHUB_TOKEN=$(echo "${GITHUB_PERSONAL_ACCESS_TOKEN}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/&/\\&/g' -e 's/|/\\|/g' -e ':a;N;$!ba;s/\n/\\n/g')
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"github\": {
       \"command\": \"/usr/local/bin/mcp-server-github\",
       \"args\": [],
       \"env\": {
-        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"\${GITHUB_PERSONAL_ACCESS_TOKEN}\"
+        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"${ESCAPED_GITHUB_TOKEN}\"
       }
     }"
 fi
 
 if [[ "${HAS_REPLICATE_API_TOKEN}" == "true" ]]; then
+    ESCAPED_REPLICATE_TOKEN=$(echo "${REPLICATE_API_TOKEN}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/&/\\&/g' -e 's/|/\\|/g' -e ':a;N;$!ba;s/\n/\\n/g')
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"flux\": {
       \"command\": \"/usr/local/bin/mcp-server-flux\",
       \"args\": [],
       \"env\": {
-        \"REPLICATE_API_TOKEN\": \"\${REPLICATE_API_TOKEN}\"
+        \"REPLICATE_API_TOKEN\": \"${ESCAPED_REPLICATE_TOKEN}\"
       }
     }"
 fi
@@ -506,6 +509,21 @@ if [ -d "$CLONE_DIR" ]; then
     if [ "$(pwd)" = "$CLONE_DIR" ]; then
         LOG_FILE="$CLONE_DIR/ollama_mcp_bridge_auto_start.log"
         printf "Starting 'npm run start' in the background. Output will be logged to: \e[36m%s\e[0m\n" "$LOG_FILE"
+
+        # --- Pre-start diagnostics for bridge_config.json ---
+        printf "\n\e[35mDEBUG: --- Checking bridge_config.json before start --- \e[0m\n"
+        CONFIG_FILE_TO_CHECK="$CLONE_DIR/bridge_config.json"
+        if [ -f "$CONFIG_FILE_TO_CHECK" ]; then
+            printf "\e[32mDEBUG: bridge_config.json found at: %s\e[0m\n" "$CONFIG_FILE_TO_CHECK"
+            printf "\e[35mDEBUG: Permissions for bridge_config.json:\e[0m\n"
+            ls -l "$CONFIG_FILE_TO_CHECK"
+            printf "\e[35mDEBUG: Contents of bridge_config.json:\e[0m\n"
+            cat "$CONFIG_FILE_TO_CHECK"
+            printf "\n\e[35mDEBUG: --- End of bridge_config.json check --- \e[0m\n"
+        else
+            printf "\e[31mCRITICAL DEBUG: bridge_config.json NOT FOUND at %s\e[0m\n" "$CONFIG_FILE_TO_CHECK"
+        fi
+        # --- End Pre-start diagnostics ---
         
         # --- Start Enhanced Debugging ---
         printf "\n\e[35mDEBUG: --- Ollama MCP Bridge Startup --- \e[0m\n"
