@@ -90,6 +90,18 @@ printf "Changed directory to $(pwd)\n"
 
 # 4. Install bridge dependencies
 printf "Installing bridge dependencies using npm...\n"
+
+# Copy package.json and package-lock.json from the correct location
+if [ -f "$CLONE_DIR/Ollama-MCP-Bridge-WebUI/package.json" ]; then
+    printf "Copying package.json from Ollama-MCP-Bridge-WebUI directory...\n"
+    cp "$CLONE_DIR/Ollama-MCP-Bridge-WebUI/package.json" "$CLONE_DIR/package.json"
+    if [ -f "$CLONE_DIR/Ollama-MCP-Bridge-WebUI/package-lock.json" ]; then
+        cp "$CLONE_DIR/Ollama-MCP-Bridge-WebUI/package-lock.json" "$CLONE_DIR/package-lock.json"
+    fi
+else
+    printf "\e[33mWarning: package.json not found in Ollama-MCP-Bridge-WebUI directory. Proceeding with existing package.json if available.\e[0m\n"
+fi
+
 npm install
 if [ $? -ne 0 ]; then
     printf "\e[31mError installing npm dependencies for the bridge. Exiting.\e[0m\n"
