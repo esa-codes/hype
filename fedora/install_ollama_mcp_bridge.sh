@@ -224,6 +224,10 @@ if [ -z "$NPM_GLOBAL_PREFIX" ]; then
 fi
 NPM_GLOBAL_BIN="$NPM_GLOBAL_PREFIX/bin"
 
+# Transform paths to use underscores instead of spaces for JSON config
+NODE_EXEC_PATH_US=$(echo "$NODE_EXEC_PATH" | sed 's/ /_/g')
+NPM_GLOBAL_BIN_US=$(echo "$NPM_GLOBAL_BIN" | sed 's/ /_/g')
+WORKSPACE_DIR_US=$(echo "$WORKSPACE_DIR" | sed 's/ /_/g')
 
 # Generate bridge configuration with conditional API key services
 # Create the base configuration
@@ -256,7 +260,7 @@ if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"brave-search\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN/mcp-server-brave-search\"],
+      \"args\": [\"$NPM_GLOBAL_BIN_US/mcp-server-brave-search\"],
       \"env\": {
         \"BRAVE_API_KEY\": \"\${BRAVE_API_KEY}\"
       }
@@ -267,7 +271,7 @@ if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"github\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN/mcp-server-github\"],
+      \"args\": [\"$NPM_GLOBAL_BIN_US/mcp-server-github\"],
       \"env\": {
         \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"\${GITHUB_PERSONAL_ACCESS_TOKEN}\"
       }
@@ -278,7 +282,7 @@ if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"flux\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
-      \"args\": [\"$NPM_GLOBAL_BIN/server-flux\"],
+      \"args\": [\"$NPM_GLOBAL_BIN_US/server-flux\"],
       \"env\": {
         \"REPLICATE_API_TOKEN\": \"\${REPLICATE_API_TOKEN}\"
       }
@@ -286,11 +290,11 @@ if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
 fi
 
 # Replace placeholders with actual values
-sed -i "s|NODE_EXEC_PATH_PLACEHOLDER|$NODE_EXEC_PATH|g" "$CONFIG_FILE"
-sed -i "s|FS_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/mcp-server-filesystem|g" "$CONFIG_FILE"
-sed -i "s|WORKSPACE_DIR_PLACEHOLDER|$WORKSPACE_DIR|g" "$CONFIG_FILE"
-sed -i "s|MEMORY_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/mcp-server-memory|g" "$CONFIG_FILE"
-sed -i "s|GMAIL_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/server-gmail-drive|g" "$CONFIG_FILE"
+sed -i "s|NODE_EXEC_PATH_PLACEHOLDER|$NODE_EXEC_PATH_US|g" "$CONFIG_FILE"
+sed -i "s|FS_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/mcp-server-filesystem|g" "$CONFIG_FILE"
+sed -i "s|WORKSPACE_DIR_PLACEHOLDER|$WORKSPACE_DIR_US|g" "$CONFIG_FILE"
+sed -i "s|MEMORY_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/mcp-server-memory|g" "$CONFIG_FILE"
+sed -i "s|GMAIL_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/server-gmail-drive|g" "$CONFIG_FILE"
 sed -i "s|LLM_MODEL_PLACEHOLDER|$LLM_MODEL|g" "$CONFIG_FILE"
 sed -i "s|ADDITIONAL_SERVERS_PLACEHOLDER|$ADDITIONAL_SERVERS|g" "$CONFIG_FILE"
 
