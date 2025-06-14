@@ -70,15 +70,90 @@ fi
 # --- Installation Steps ---
 printf "\n\e[34mStarting Ollama-MCP-Bridge (patruff) installation...\e[0m\n"
 
-# 3. Clone the repository
+# 3. Clone/Update the repository
+EXPECTED_REPO_URL="https://github.com/patruff/ollama-mcp-bridge.git"
+REPO_SHOULD_BE_CLONED=false
+
 if [ -d "$CLONE_DIR" ]; then
-    printf "\e[33mDirectory $CLONE_DIR already exists. Skipping clone.\e[0m\n"
-    printf "If you want a fresh clone, please remove it first: rm -rf $CLONE_DIR\n"
+    printf "\e[33mDirectory $CLONE_DIR already exists. Checking its content...\e[0m\n"
+    if [ -d "$CLONE_DIR/.git" ]; then
+        # Temporarily change to CLONE_DIR to run git command, then change back
+        CURRENT_REPO_URL=$( (cd "$CLONE_DIR" && git config --get remote.origin.url) || echo "ERROR_GETTING_URL" )
+
+        if [ "$CURRENT_REPO_URL" = "$EXPECTED_REPO_URL" ]; then
+            printf "\e[32mCorrect repository found in $CLONE_DIR.\e[0m\n"
+            printf "Attempting to forcefully reset and update the repository to match remote 'main'...\n"
+            (
+                cd "$CLONE_DIR" || { printf "\e[31mFailed to cd into $CLONE_DIR for update. Exiting from subshell.\e[0m\n"; exit 1; }
+                git fetch origin
+                if [ $? -ne 0 ]; then
+                    printf "\e[33mWarning: 'git fetch origin' failed. Continuing with existing local version.\e[0m\n"
+                else
+                    git reset --hard origin/main
+                    if [ $? -ne 0 ]; then
+                        printf "\e[33mWarning: 'git reset --hard origin/main' failed. Continuing with existing local version.\e[0m\n"
+                    else
+                        git clean -fdx
+                        if [ $? -ne 0 ]; then
+                            printf "\e[33mWarning: 'git clean -fdx' failed. Some untracked files may remain.\e[0m\n"
+                        fi
+                        git checkout main # Ensure we are on main branch
+                        git pull origin main # Pull specifically from origin main
+                        if [ $? -ne 0 ]; then
+                            printf "\e[33mWarning: 'git pull origin main' after reset/clean failed. Continuing with existing local version.\e[0m\n"
+                        else
+                            printf "\e[32mRepository forcefully reset and updated successfully.\e[0m\n"
+                        fi
+                    fi
+                fi
+            )
+        elif [ "$CURRENT_REPO_URL" = "ERROR_GETTING_URL" ]; then
+            printf "\e[31mError: Could not get remote URL from $CLONE_DIR. It might be corrupted or not a git repo in the expected state.\e[0m\n"
+            printf "Removing existing directory %s...\n" "$CLONE_DIR"
+            if rm -rf "$CLONE_DIR"; then
+                printf "\e[32mSuccessfully removed %s.\e[0m\n" "$CLONE_DIR"
+                REPO_SHOULD_BE_CLONED=true
+            else
+                printf "\e[31mError: Failed to remove $CLONE_DIR. Please remove it manually and re-run. Exiting.\e[0m\n"
+                exit 1
+            fi
+        else
+            printf "\e[31mError: Directory $CLONE_DIR exists but contains the wrong repository.\e[0m\n"
+            printf "  Expected: %s\n" "$EXPECTED_REPO_URL"
+            printf "  Found:    %s\n" "$CURRENT_REPO_URL"
+            printf "Removing existing directory %s...\n" "$CLONE_DIR"
+            if rm -rf "$CLONE_DIR"; then
+                printf "\e[32mSuccessfully removed %s.\e[0m\n" "$CLONE_DIR"
+                REPO_SHOULD_BE_CLONED=true
+            else
+                printf "\e[31mError: Failed to remove $CLONE_DIR. Please remove it manually and re-run. Exiting.\e[0m\n"
+                exit 1
+            fi
+        fi
+    else
+        printf "\e[31mError: Directory $CLONE_DIR exists but is not a git repository.\e[0m\n"
+        printf "Removing existing directory %s...\n" "$CLONE_DIR"
+        if rm -rf "$CLONE_DIR"; then
+            printf "\e[32mSuccessfully removed %s.\e[0m\n" "$CLONE_DIR"
+            REPO_SHOULD_BE_CLONED=true
+        else
+            printf "\e[31mError: Failed to remove $CLONE_DIR. Please remove it manually and re-run. Exiting.\e[0m\n"
+            exit 1
+        fi
+    fi
 else
-    printf "Cloning patruff/ollama-mcp-bridge repository into $CLONE_DIR...\n"
-    git clone https://github.com/patruff/ollama-mcp-bridge.git "$CLONE_DIR"
+    REPO_SHOULD_BE_CLONED=true
+fi
+
+if [ "$REPO_SHOULD_BE_CLONED" = true ]; then
+    printf "Cloning %s repository into $CLONE_DIR...\n" "$EXPECTED_REPO_URL"
+    git clone "$EXPECTED_REPO_URL" "$CLONE_DIR"
     if [ $? -ne 0 ]; then
         printf "\e[31mError cloning the repository. Exiting.\e[0m\n"
+        # The backup mechanism has been removed, so no need to check for BACKUP_DIR
+        # if [ -n "$BACKUP_DIR" ] && [ -d "$BACKUP_DIR" ]; then
+        #      printf "Your original content from the $CLONE_DIR path was backed up to $BACKUP_DIR\n"
+        # fi
         exit 1
     fi
     printf "\e[32mRepository cloned successfully.\e[0m\n"
@@ -424,7 +499,48 @@ if [ -d "$CLONE_DIR" ]; then
         LOG_FILE="$CLONE_DIR/ollama_mcp_bridge_auto_start.log"
         printf "Starting 'npm run start' in the background. Output will be logged to: \e[36m%s\e[0m\n" "$LOG_FILE"
         
-        nohup npm run start > "$LOG_FILE" 2>&1 &
+        # --- Start Enhanced Debugging ---
+        printf "\n\e[35mDEBUG: --- Ollama MCP Bridge Startup --- \e[0m\n"
+        printf "\e[35mDEBUG: Target bridge directory: %s\e[0m\n" "$CLONE_DIR"
+        printf "\e[35mDEBUG: Current directory for starting bridge: $(pwd)\e[0m\n"
+        printf "\e[35mDEBUG: Listing contents of current directory ($(pwd)) (before checks):\e[0m\n"
+        ls -la
+        
+        if [ -d "src" ]; then
+            printf "\e[35mDEBUG: Listing contents of src/ directory:\e[0m\n"
+            ls -la src/
+        else
+            printf "\e[33mDEBUG: src/ directory NOT FOUND in $(pwd)\e[0m\n"
+        fi
+        
+        # Check if src/main.ts exists
+        if [ ! -f "src/main.ts" ]; then
+            printf "\e[31mCRITICAL ERROR: src/main.ts not found in $(pwd). Bridge will not start.\e[0m\n"
+            if [ -f ".git/config" ]; then
+                printf "\e[35mDEBUG: .git/config contents:\n"
+                cat .git/config
+            else
+                printf "\e[33mDEBUG: .git/config NOT FOUND in $(pwd)\e[0m\n"
+            fi
+            printf "\e[35mDEBUG: --- End Ollama MCP Bridge Startup Debug (src/main.ts not found) ---\e[0m\n\n"
+            exit 1
+        fi
+
+        # Check if node_modules/.bin/ts-node exists
+        if [ ! -x "./node_modules/.bin/ts-node" ]; then
+             printf "\e[31mCRITICAL ERROR: ./node_modules/.bin/ts-node not found or not executable in $(pwd). Bridge will not start.\e[0m\n"
+             printf "\e[35mDEBUG: Listing contents of node_modules/.bin/ directory:\e[0m\n"
+             if [ -d "node_modules/.bin" ]; then
+                ls -la node_modules/.bin/
+             else
+                printf "\e[33mDEBUG: node_modules/.bin/ directory NOT FOUND in $(pwd)\e[0m\n"
+             fi
+             printf "\e[35mDEBUG: --- End Ollama MCP Bridge Startup Debug (ts-node not found) ---\e[0m\n\n"
+             exit 1
+        fi
+        # --- End Enhanced Debugging (Checks Passed) ---
+        
+        nohup "./node_modules/.bin/ts-node" "src/main.ts" > "$LOG_FILE" 2>&1 &
         NOHUP_PID=$!
 
         printf "Waiting a few seconds for the bridge to initialize...\n"
