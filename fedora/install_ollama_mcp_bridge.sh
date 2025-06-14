@@ -412,13 +412,7 @@ if [[ "${HAS_REPLICATE_API_TOKEN}" == "true" ]]; then
     }"
 fi
 
-# Replace placeholders with actual values
-sed -i "s|NODE_EXEC_PATH_PLACEHOLDER|$NODE_EXEC_PATH_US|g" "$CONFIG_FILE"
-sed -i "s|FS_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/mcp-server-filesystem|g" "$CONFIG_FILE"
-sed -i "s|WORKSPACE_DIR_PLACEHOLDER|$WORKSPACE_DIR_US|g" "$CONFIG_FILE"
-sed -i "s|MEMORY_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/mcp-server-memory|g" "$CONFIG_FILE"
-sed -i "s|GMAIL_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN_US/server-gmail-drive|g" "$CONFIG_FILE"
-sed -i "s|LLM_MODEL_PLACEHOLDER|$LLM_MODEL|g" "$CONFIG_FILE"
+# Replace placeholder for additional servers
 sed -i "s|ADDITIONAL_SERVERS_PLACEHOLDER|$ADDITIONAL_SERVERS|g" "$CONFIG_FILE"
 
 if [ -f "$CONFIG_FILE" ]; then
@@ -429,7 +423,6 @@ if [ -f "$CONFIG_FILE" ]; then
     printf "\n\e[34mMCP Services Configuration Summary:\e[0m\n"
     printf "\e[32m✓ Filesystem server: Enabled\e[0m\n"
     printf "\e[32m✓ Memory server: Enabled\e[0m\n"
-    printf "\e[32m✓ Gmail-Drive server: Enabled\e[0m\n"
     
     if [[ "${HAS_BRAVE_API_KEY}" == "true" ]]; then
         printf "\e[32m✓ Brave Search: Configured in bridge_config.json (API key was provided)\e[0m\n"
