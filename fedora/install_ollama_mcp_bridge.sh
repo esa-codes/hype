@@ -202,7 +202,6 @@ CONFIG_FILE="$CLONE_DIR/bridge_config.json"
 printf "\n\e[34mCreating $CONFIG_FILE...\e[0m\n"
 
 # Resolve paths for JSON
-ESCAPED_WORKSPACE_DIR=$(printf '%s' "$WORKSPACE_DIR" | sed 's/[&\/]/\\&/g')
 NODE_EXEC_PATH=$(command -v node)
 if [ -z "$NODE_EXEC_PATH" ]; then
     printf "\e[31mError: Node executable not found in PATH. Cannot create bridge_config.json correctly.\e[0m\n"
@@ -225,82 +224,75 @@ if [ -z "$NPM_GLOBAL_PREFIX" ]; then
 fi
 NPM_GLOBAL_BIN="$NPM_GLOBAL_PREFIX/bin"
 
-# Escape paths for JSON
-ESCAPED_NODE_EXEC_PATH=$(printf '%s' "$NODE_EXEC_PATH" | sed 's/[&\/]/\\&/g')
-ESCAPED_FS_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-filesystem" | sed 's/[&\/]/\\&/g')
-ESCAPED_BRAVE_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-brave-search" | sed 's/[&\/]/\\&/g')
-ESCAPED_GITHUB_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-github" | sed 's/[&\/]/\\&/g')
-ESCAPED_MEMORY_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/mcp-server-memory" | sed 's/[&\/]/\\&/g')
-ESCAPED_FLUX_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-flux" | sed 's/[&\/]/\\&/g')
-ESCAPED_GMAIL_SERVER_PATH=$(printf '%s' "$NPM_GLOBAL_BIN/server-gmail-drive" | sed 's/[&\/]/\\&/g')
-
 
 # Generate bridge configuration with conditional API key services
-cat > "$CONFIG_FILE" << EOL
+# Create the base configuration
+cat > "$CONFIG_FILE" << 'EOF'
 {
   "mcpServers": {
     "filesystem": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_FS_SERVER_PATH", "$ESCAPED_WORKSPACE_DIR"]
+      "command": "NODE_EXEC_PATH_PLACEHOLDER",
+      "args": ["FS_SERVER_PATH_PLACEHOLDER", "WORKSPACE_DIR_PLACEHOLDER"]
     },
     "memory": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_MEMORY_SERVER_PATH"]
-    }EOL
-
-# Add brave-search if API key is available
-if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
-    cat >> "$CONFIG_FILE" << EOL
-,
-    "brave-search": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_BRAVE_SERVER_PATH"],
-      "env": {
-        "BRAVE_API_KEY": "\${BRAVE_API_KEY}"
-      }
-    }EOL
-fi
-
-# Add github if API key is available
-if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
-    cat >> "$CONFIG_FILE" << EOL
-,
-    "github": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_GITHUB_SERVER_PATH"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    }EOL
-fi
-
-# Add flux if API key is available
-if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
-    cat >> "$CONFIG_FILE" << EOL
-,
-    "flux": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_FLUX_SERVER_PATH"],
-      "env": {
-        "REPLICATE_API_TOKEN": "\${REPLICATE_API_TOKEN}"
-      }
-    }EOL
-fi
-
-# Always add gmail-drive (doesn't require API key for basic functionality)
-cat >> "$CONFIG_FILE" << EOL
-,
+      "command": "NODE_EXEC_PATH_PLACEHOLDER",
+      "args": ["MEMORY_SERVER_PATH_PLACEHOLDER"]
+    },
     "gmail-drive": {
-      "command": "$ESCAPED_NODE_EXEC_PATH",
-      "args": ["$ESCAPED_GMAIL_SERVER_PATH"]
-    }
+      "command": "NODE_EXEC_PATH_PLACEHOLDER",
+      "args": ["GMAIL_SERVER_PATH_PLACEHOLDER"]
+    }ADDITIONAL_SERVERS_PLACEHOLDER
   },
   "llm": {
-    "model": "$LLM_MODEL",
+    "model": "LLM_MODEL_PLACEHOLDER",
     "baseUrl": "http://localhost:11434"
   }
 }
-EOL
+EOF
+
+# Build additional servers section
+ADDITIONAL_SERVERS=""
+if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
+    ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
+    \"brave-search\": {
+      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
+      \"args\": [\"$NPM_GLOBAL_BIN/mcp-server-brave-search\"],
+      \"env\": {
+        \"BRAVE_API_KEY\": \"\${BRAVE_API_KEY}\"
+      }
+    }"
+fi
+
+if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
+    ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
+    \"github\": {
+      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
+      \"args\": [\"$NPM_GLOBAL_BIN/mcp-server-github\"],
+      \"env\": {
+        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"\${GITHUB_PERSONAL_ACCESS_TOKEN}\"
+      }
+    }"
+fi
+
+if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
+    ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
+    \"flux\": {
+      \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
+      \"args\": [\"$NPM_GLOBAL_BIN/server-flux\"],
+      \"env\": {
+        \"REPLICATE_API_TOKEN\": \"\${REPLICATE_API_TOKEN}\"
+      }
+    }"
+fi
+
+# Replace placeholders with actual values
+sed -i "s|NODE_EXEC_PATH_PLACEHOLDER|$NODE_EXEC_PATH|g" "$CONFIG_FILE"
+sed -i "s|FS_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/mcp-server-filesystem|g" "$CONFIG_FILE"
+sed -i "s|WORKSPACE_DIR_PLACEHOLDER|$WORKSPACE_DIR|g" "$CONFIG_FILE"
+sed -i "s|MEMORY_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/mcp-server-memory|g" "$CONFIG_FILE"
+sed -i "s|GMAIL_SERVER_PATH_PLACEHOLDER|$NPM_GLOBAL_BIN/server-gmail-drive|g" "$CONFIG_FILE"
+sed -i "s|LLM_MODEL_PLACEHOLDER|$LLM_MODEL|g" "$CONFIG_FILE"
+sed -i "s|ADDITIONAL_SERVERS_PLACEHOLDER|$ADDITIONAL_SERVERS|g" "$CONFIG_FILE"
 
 if [ -f "$CONFIG_FILE" ]; then
     printf "\e[32m$CONFIG_FILE created successfully.\e[0m\n"
@@ -438,7 +430,7 @@ if [ -d "$CLONE_DIR" ]; then
             printf "\e[32mOllama-MCP-Bridge appears to have started successfully in the background (PID: %s).\e[0m\n" "$NOHUP_PID"
             printf "You can view the logs with: \e[36mtail -f %s\e[0m\n" "$LOG_FILE"
             printf "To stop this instance of the bridge, you can use: \e[36mkill %s\e[0m\n" "$NOHUP_PID"
-            printf "Alternatively, find the process with 'pgrep -f "npm run start.*ollama-mcp-bridge"' or similar and kill it.\n"
+            printf "Alternatively, find the process with 'pgrep -f \"npm run start.*ollama-mcp-bridge\"' or similar and kill it.\n"
         else
             printf "\e[31mFailed to start Ollama-MCP-Bridge in the background, or it exited quickly.\e[0m\n"
             printf "Please check the log file for errors: \e[36m%s\e[0m\n" "$LOG_FILE"
