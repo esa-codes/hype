@@ -272,7 +272,59 @@ else
     printf "\e[32mWorkspace directory $WORKSPACE_DIR created/ensured.\e[0m\n"
 fi
 
-# 7. Create bridge_config.json
+# --- Post-installation --- 
+printf "\n\e[34mPost-installation steps:
+" # Moved API key prompt before config generation
+printf "\e[33mIMPORTANT: Configure API keys and OAuth for full functionality.\e[0m\n"
+printf "The bridge may have limited capabilities without these.\n\n"
+
+api_keys_to_configure=(
+    "BRAVE_API_KEY:Brave Search API Key"
+    "GITHUB_PERSONAL_ACCESS_TOKEN:GitHub Personal Access Token"
+    "REPLICATE_API_TOKEN:Replicate API Token (for Flux image generation)"
+)
+
+# Initialize HAS_ variables to false
+HAS_BRAVE_API_KEY=false
+HAS_GITHUB_PERSONAL_ACCESS_TOKEN=false
+HAS_REPLICATE_API_TOKEN=false
+
+for item in "${api_keys_to_configure[@]}"; do
+    IFS=":" read -r env_var_name description <<< "$item"
+    printf "\n\e[35m%s\e[0m (%s):\n" "$env_var_name" "$description"
+    
+    current_env_val=$(env | grep "^${env_var_name}=" | cut -d= -f2-)
+    if [ -n "$current_env_val" ]; then
+        printf "Already set in environment: \e[36m%s\e[0m\n" "$current_env_val"
+        read -r -p "Press Enter to keep current value, or enter new value (empty to disable for config): " api_key_value
+        if [ -z "$api_key_value" ] && [ -n "$current_env_val" ]; then # User pressed enter, keep existing
+            export "$env_var_name"="$current_env_val" # Ensure it's exported for the session if already set
+            eval "HAS_${env_var_name}=true"
+            printf "\e[32mKeeping existing %s value for bridge_config.json.\e[0m\n" "$env_var_name"
+            continue
+        elif [ -z "$api_key_value" ] && [ -z "$current_env_val" ]; then # User pressed enter, but no existing value
+            printf "\e[33mNo API key provided for %s. Related service will be disabled in bridge_config.json.\e[0m\n" "$env_var_name"
+            eval "HAS_${env_var_name}=false"
+            continue
+        fi
+        # If user entered a new value, api_key_value will be set, otherwise it's empty from above
+    else
+        read -r -p "Enter your API key (leave empty to skip for config): " api_key_value
+    fi
+    
+    if [ -n "$api_key_value" ]; then
+        export "$env_var_name"="$api_key_value"
+        printf "\e[32m%s has been set for this session and will be used in bridge_config.json.\e[0m\n" "$env_var_name"
+        printf "To make it permanent, add this to your shell startup file (e.g., .bashrc, .zshrc):\n"
+        printf "  \e[36mexport %s=\"%s\"\e[0m\n" "$env_var_name" "$api_key_value"
+        eval "HAS_${env_var_name}=true"
+    else
+        printf "\e[33mSkipped %s - related service will be disabled in bridge_config.json.\e[0m\n" "$env_var_name"
+        eval "HAS_${env_var_name}=false"
+    fi
+done
+
+# 7. Create bridge_config.json (now after API keys are prompted)
 CONFIG_FILE="$CLONE_DIR/bridge_config.json"
 printf "\n\e[34mCreating $CONFIG_FILE...\e[0m\n"
 
@@ -329,9 +381,9 @@ cat > "$CONFIG_FILE" << 'EOF'
 }
 EOF
 
-# Build additional servers section
+# Build additional servers section based on HAS_ variables set during API key input
 ADDITIONAL_SERVERS=""
-if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
+if [[ "${HAS_BRAVE_API_KEY}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"brave-search\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
@@ -342,7 +394,7 @@ if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
     }"
 fi
 
-if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
+if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"github\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
@@ -353,7 +405,7 @@ if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
     }"
 fi
 
-if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
+if [[ "${HAS_REPLICATE_API_TOKEN}" == "true" ]]; then
     ADDITIONAL_SERVERS="$ADDITIONAL_SERVERS,
     \"flux\": {
       \"command\": \"NODE_EXEC_PATH_PLACEHOLDER\",
@@ -383,72 +435,29 @@ if [ -f "$CONFIG_FILE" ]; then
     printf "\e[32m✓ Memory server: Enabled\e[0m\n"
     printf "\e[32m✓ Gmail-Drive server: Enabled\e[0m\n"
     
-    if [[ "${HAS_BRAVE_API_KEY:-false}" == "true" ]]; then
-        printf "\e[32m✓ Brave Search: Enabled (API key provided)\e[0m\n"
+    if [[ "${HAS_BRAVE_API_KEY}" == "true" ]]; then
+        printf "\e[32m✓ Brave Search: Configured in bridge_config.json (API key was provided)\e[0m\n"
     else
-        printf "\e[33m✗ Brave Search: Disabled (no API key)\e[0m\n"
+        printf "\e[33m✗ Brave Search: Not configured in bridge_config.json (no API key provided)\e[0m\n"
     fi
     
-    if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN:-false}" == "true" ]]; then
-        printf "\e[32m✓ GitHub: Enabled (API key provided)\e[0m\n"
+    if [[ "${HAS_GITHUB_PERSONAL_ACCESS_TOKEN}" == "true" ]]; then
+        printf "\e[32m✓ GitHub: Configured in bridge_config.json (Token was provided)\e[0m\n"
     else
-        printf "\e[33m✗ GitHub: Disabled (no API key)\e[0m\n"
+        printf "\e[33m✗ GitHub: Not configured in bridge_config.json (no Token provided)\e[0m\n"
     fi
     
-    if [[ "${HAS_REPLICATE_API_TOKEN:-false}" == "true" ]]; then
-        printf "\e[32m✓ Flux (Image Generation): Enabled (API key provided)\e[0m\n"
+    if [[ "${HAS_REPLICATE_API_TOKEN}" == "true" ]]; then
+        printf "\e[32m✓ Flux (Image Generation): Configured in bridge_config.json (Token was provided)\e[0m\n"
     else
-        printf "\e[33m✗ Flux (Image Generation): Disabled (no API key)\e[0m\n"
+        printf "\e[33m✗ Flux (Image Generation): Not configured in bridge_config.json (no Token provided)\e[0m\n"
     fi
     printf "\n"
 else
     printf "\e[31mError: Failed to create $CONFIG_FILE. Please create it manually.\e[0m\n"
 fi
 
-# --- Post-installation --- 
-printf "\n\e[34mPost-installation steps:\e[0m\n"
-printf "\e[33mIMPORTANT: Configure API keys and OAuth for full functionality.\e[0m\n"
-printf "The bridge may have limited capabilities without these.\n\n"
 
-api_keys_to_configure=(
-    "BRAVE_API_KEY:Brave Search API Key"
-    "GITHUB_PERSONAL_ACCESS_TOKEN:GitHub Personal Access Token"
-    "REPLICATE_API_TOKEN:Replicate API Token (for Flux image generation)"
-)
-
-for item in "${api_keys_to_configure[@]}"; do
-    IFS=":" read -r env_var_name description <<< "$item"
-    printf "\n\e[35m%s\e[0m (%s):\n" "$env_var_name" "$description"
-    
-    # Check if already set in environment
-    current_env_val=$(env | grep "^${env_var_name}=" | cut -d= -f2-)
-    if [ -n "$current_env_val" ]; then
-        printf "Already set in environment: \e[36m%s\e[0m\n" "$current_env_val"
-        read -r -p "Press Enter to keep current value, or enter new value (empty to disable): " api_key_value
-        if [ -z "$api_key_value" ]; then
-            # Keep existing value
-            eval "HAS_${env_var_name}=true"
-            printf "\e[32mKeeping existing %s value.\e[0m\n" "$env_var_name"
-            continue
-        fi
-    else
-        read -r -p "Enter your API key (leave empty to skip): " api_key_value
-    fi
-    
-    if [ -n "$api_key_value" ]; then
-        # Save the API key to environment
-        export "$env_var_name"="$api_key_value"
-        printf "\e[32m%s has been set for this session.\e[0m\n" "$env_var_name"
-        printf "To make it permanent, add this to your shell startup file:\n"
-        printf "  \e[36mexport %s=\"%s\"\e[0m\n" "$env_var_name" "$api_key_value"
-        
-        # Mark this API key as available for bridge config
-        eval "HAS_${env_var_name}=true"
-    else
-        printf "\e[33mSkipped %s - related services will be disabled.\e[0m\n" "$env_var_name"
-        eval "HAS_${env_var_name}=false"
-    fi
-done
 
 # Gmail/Drive Authentication
 printf "\nGmail/Drive MCP Authentication:\n"
@@ -459,14 +468,24 @@ GMAIL_DRIVE_SERVER_EXEC="server-gmail-drive"
 
 if [ -n "$NPM_GLOBAL_BIN_PATH" ] && [ -x "${NPM_GLOBAL_BIN_PATH}/${GMAIL_DRIVE_SERVER_EXEC}" ]; then
     GMAIL_DRIVE_AUTH_CMD="node \"${NPM_GLOBAL_BIN_PATH}/${GMAIL_DRIVE_SERVER_EXEC}\" auth"
-    printf "To authenticate Gmail/Drive, run the following command in your terminal after this script finishes:
-"
+    printf "The Gmail/Drive MCP server requires authentication to access your Google services.\n"
+    printf "This typically involves opening a web browser to grant permissions.\n"
+    printf "To authenticate Gmail/Drive, the script will attempt to run the following command:\n"
     printf "  \e[36m%s\e[0m\n" "$GMAIL_DRIVE_AUTH_CMD"
-    read -r -p "Do you want to attempt to run this authentication command now? (Requires browser interaction) (yes/no) [no]: " run_gmail_auth_now
-    if [[ "$run_gmail_auth_now" == "yes" ]]; then
+    read -r -p "Attempt to run the Gmail/Drive authentication now? (Required for Gmail/Drive features) (yes/no) [yes]: " run_gmail_auth_now
+    run_gmail_auth_now_lower=$(echo "$run_gmail_auth_now" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$run_gmail_auth_now_lower" == "yes" ]] || [[ -z "$run_gmail_auth_now_lower" ]]; then # Default to yes
         printf "Attempting to run: %s\n" "$GMAIL_DRIVE_AUTH_CMD"
         eval "$GMAIL_DRIVE_AUTH_CMD"
-        printf "Gmail/Drive authentication process attempted. Check terminal output for status or errors.\n"
+        printf "Gmail/Drive authentication process attempted. Please check your terminal and browser for any required actions or error messages.\n"
+        printf "If authentication was successful, the bridge should be able to use Gmail/Drive services.\n"
+        printf "If it failed, you can try running the command manually later: %s\n" "$GMAIL_DRIVE_AUTH_CMD"
+    else
+        printf "\e[33mWARNING: You chose not to authenticate Gmail/Drive at this time.\e[0m\n"
+        printf "\e[33mThe Ollama MCP Bridge may not be able to connect to the Gmail/Drive service, or its features will be unavailable.\e[0m\n"
+        printf "You can run the authentication manually later using the command:\n"
+        printf "  \e[36m%s\e[0m\n" "$GMAIL_DRIVE_AUTH_CMD"
     fi
 else
     # Fallback if detection fails
