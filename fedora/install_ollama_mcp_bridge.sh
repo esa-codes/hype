@@ -22,7 +22,7 @@ command_exists() {
 INSTALL_PARENT_DIR="$HOME/hype" # Parent directory for projects
 REPO_NAME="ollama-mcp-bridge" # Cloned repository name
 CLONE_DIR="$INSTALL_PARENT_DIR/$REPO_NAME"
-WORKSPACE_DIR="$HOME/mcp-workspace" # General workspace directory
+WORKSPACE_DIR="$HOME/bridgeworkspace" # General workspace directory
 LLM_MODEL="qwen3:0.5b"
 
 # --- Prerequisites ---
